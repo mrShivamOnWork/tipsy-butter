@@ -14,9 +14,10 @@ const GREETINGS = [
   "Mabuhay",
 ] as const;
 
-const CYCLE_MS = 500;  // each greeting stays long enough to read
-const HOLD_MS  = 1400; // extra hold on "Mabuhay"
-const EXIT_MS  = 1300;
+const CYCLE_MS  = 500;   // each greeting visible long enough to read
+const HOLD_MS   = 1400;  // extra hold on "Mabuhay"
+const BRAND_MS  = 1600;  // brand fully appears ~930ms in, so hold ~670ms at full opacity
+const EXIT_MS   = 1300;
 
 type Phase = "greet" | "brand" | "choice" | "exit" | "done";
 
@@ -43,11 +44,9 @@ export function Preloader({ onDone, onChoice }: Props) {
         t = setTimeout(() => setPhase("brand"), HOLD_MS);
       }
     }
-
     if (phase === "brand") {
-      t = setTimeout(() => setPhase("choice"), 950);
+      t = setTimeout(() => setPhase("choice"), BRAND_MS);
     }
-
     if (phase === "exit") {
       t = setTimeout(() => {
         setPhase("done");
@@ -65,13 +64,19 @@ export function Preloader({ onDone, onChoice }: Props) {
     setPhase("exit");
   }
 
-  const exiting    = phase === "exit";
-  const isMabuhay  = idx === GREETINGS.length - 1;
-  const showBrand  = phase === "brand";
-  const showChoice = phase === "choice" || phase === "exit";
+  const exiting   = phase === "exit";
+  const isMabuhay = idx === GREETINGS.length - 1;
+
+  // Which content key to show — "choice" persists during exit so it's visible as layers slide away
+  const contentKey =
+    phase === "greet"
+      ? "greet"
+      : phase === "brand"
+      ? "brand"
+      : "choice"; // covers "choice" + "exit"
 
   return (
-    <div className="fixed inset-0 z-[10000] overflow-hidden" aria-hidden="true">
+    <div className="fixed inset-0 z-[10000] overflow-hidden">
 
       {/* Back layer — caramel gold, exits last */}
       <motion.div
@@ -101,180 +106,169 @@ export function Preloader({ onDone, onChoice }: Props) {
         }
       >
         <div className="absolute inset-0 flex items-center justify-center px-8">
-          <div className="relative w-full" style={{ height: "320px" }}>
+
+          {/* Single AnimatePresence — content transitions in sequence */}
+          <AnimatePresence mode="wait">
 
             {/* STAGE 1 — Greeting cycle */}
-            <AnimatePresence>
-              {phase === "greet" && (
-                <motion.div
-                  key="stage-greet"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-8"
-                  exit={{
-                    opacity: 0,
-                    y: -80,
-                    transition: { duration: 0.55, ease: [0.76, 0, 0.24, 1] },
-                  }}
-                >
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={idx}
-                      initial={{ opacity: 0, y: 24 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -18, transition: { duration: 0.18, ease: "easeOut" } }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                      className="font-headline-xl font-extrabold uppercase tracking-[-0.04em] leading-none text-center select-none"
-                      style={{ fontSize: "clamp(52px, 10vw, 112px)", color: "#fff8f6" }}
-                    >
-                      {GREETINGS[idx]}
-                    </motion.span>
-                  </AnimatePresence>
-
-                  <motion.div
-                    className="flex items-center gap-4"
-                    animate={{ opacity: isMabuhay ? 1 : 0 }}
-                    transition={{ duration: 0.45, ease: "easeOut" }}
+            {contentKey === "greet" && (
+              <motion.div
+                key="greet"
+                className="flex flex-col items-center gap-8"
+                exit={{ opacity: 0, y: -80, transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] } }}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={idx}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -18, transition: { duration: 0.18, ease: "easeOut" } }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="font-headline-xl font-extrabold uppercase tracking-[-0.04em] leading-none text-center select-none"
+                    style={{ fontSize: "clamp(52px, 10vw, 112px)", color: "#fff8f6" }}
                   >
-                    <motion.div
-                      className="h-px"
-                      style={{ backgroundColor: "#a27e43" }}
-                      animate={{ width: isMabuhay ? 28 : 0 }}
-                      transition={{ duration: 0.5, delay: 0.1 }}
-                    />
-                    <span
-                      className="font-label-caps text-[9px] uppercase tracking-[0.55em] whitespace-nowrap"
-                      style={{ color: "rgba(255,248,246,0.3)" }}
-                    >
-                      The Tipsy Butter
-                    </span>
-                    <motion.div
-                      className="h-px"
-                      style={{ backgroundColor: "#a27e43" }}
-                      animate={{ width: isMabuhay ? 28 : 0 }}
-                      transition={{ duration: 0.5, delay: 0.1 }}
-                    />
-                  </motion.div>
+                    {GREETINGS[idx]}
+                  </motion.span>
+                </AnimatePresence>
 
-                  <div className="flex gap-2" aria-hidden="true">
-                    {GREETINGS.map((_, i) => (
-                      <motion.span
-                        key={i}
-                        className="block rounded-full"
-                        animate={{
-                          opacity: i === idx ? 0.55 : 0.10,
-                          scale:   i === idx ? 1.4  : 1,
-                        }}
-                        transition={{ duration: 0.18 }}
-                        style={{ width: 4, height: 4, backgroundColor: "#fff8f6" }}
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* STAGE 2 — Brand reveal */}
-            <AnimatePresence>
-              {showBrand && (
                 <motion.div
-                  key="stage-brand"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-4"
-                  initial={{ opacity: 0, y: 48 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -24, transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] } }}
-                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.28 }}
+                  className="flex items-center gap-4"
+                  animate={{ opacity: isMabuhay ? 1 : 0 }}
+                  transition={{ duration: 0.45 }}
                 >
-                  <div className="flex items-center gap-4">
-                    <motion.div
-                      className="h-px"
-                      style={{ backgroundColor: "#a27e43" }}
-                      initial={{ width: 0 }}
-                      animate={{ width: 32 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                    <span
-                      className="font-label-caps uppercase tracking-[0.55em] text-[9px]"
-                      style={{ color: "rgba(255,248,246,0.4)" }}
-                    >
-                      Digos City · Est. 2024
-                    </span>
-                    <motion.div
-                      className="h-px"
-                      style={{ backgroundColor: "#a27e43" }}
-                      initial={{ width: 0 }}
-                      animate={{ width: 32 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
+                  <motion.div
+                    className="h-px"
+                    style={{ backgroundColor: "#a27e43" }}
+                    animate={{ width: isMabuhay ? 28 : 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  />
                   <span
-                    className="font-headline-xl font-extrabold uppercase tracking-[-0.03em] leading-none"
-                    style={{ fontSize: "clamp(28px, 5vw, 56px)", color: "rgba(255,248,246,0.9)" }}
+                    className="font-label-caps text-[9px] uppercase tracking-[0.55em] whitespace-nowrap"
+                    style={{ color: "rgba(255,248,246,0.3)" }}
                   >
                     The Tipsy Butter
                   </span>
+                  <motion.div
+                    className="h-px"
+                    style={{ backgroundColor: "#a27e43" }}
+                    animate={{ width: isMabuhay ? 28 : 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  />
+                </motion.div>
+
+                <div className="flex gap-2">
+                  {GREETINGS.map((_, i) => (
+                    <motion.span
+                      key={i}
+                      className="block rounded-full"
+                      animate={{ opacity: i === idx ? 0.55 : 0.1, scale: i === idx ? 1.4 : 1 }}
+                      transition={{ duration: 0.18 }}
+                      style={{ width: 4, height: 4, backgroundColor: "#fff8f6" }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* STAGE 2 — Brand reveal */}
+            {contentKey === "brand" && (
+              <motion.div
+                key="brand"
+                className="flex flex-col items-center gap-4"
+                initial={{ opacity: 0, y: 48 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -24, transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] } }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              >
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    className="h-px"
+                    style={{ backgroundColor: "#a27e43" }}
+                    initial={{ width: 0 }}
+                    animate={{ width: 32 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  />
                   <span
-                    className="font-label-caps text-[9px] uppercase tracking-[0.45em]"
-                    style={{ color: "rgba(255,248,246,0.28)" }}
+                    className="font-label-caps uppercase tracking-[0.55em] text-[9px]"
+                    style={{ color: "rgba(255,248,246,0.4)" }}
                   >
-                    Cafe &amp; Bakehouse
+                    Digos City · Est. 2024
                   </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <motion.div
+                    className="h-px"
+                    style={{ backgroundColor: "#a27e43" }}
+                    initial={{ width: 0 }}
+                    animate={{ width: 32 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  />
+                </div>
 
-            {/* STAGE 3 — Ambience choice */}
-            <AnimatePresence>
-              {showChoice && (
-                <motion.div
-                  key="stage-choice"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-7"
-                  initial={{ opacity: 0, y: 36 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                <span
+                  className="font-headline-xl font-extrabold uppercase tracking-[-0.03em] leading-none text-center"
+                  style={{ fontSize: "clamp(28px, 5vw, 56px)", color: "rgba(255,248,246,0.9)" }}
                 >
-                  {/* Label */}
-                  <div className="flex items-center gap-4">
-                    <div className="w-5 h-px" style={{ backgroundColor: "#a27e43" }} />
-                    <span
-                      className="font-label-caps text-[8px] uppercase tracking-[0.45em]"
-                      style={{ color: "rgba(255,248,246,0.35)" }}
-                    >
-                      One more thing
-                    </span>
-                    <div className="w-5 h-px" style={{ backgroundColor: "#a27e43" }} />
-                  </div>
+                  The Tipsy Butter
+                </span>
 
-                  {/* Question */}
-                  <p
-                    className="font-headline-md uppercase tracking-[0.06em] text-center leading-snug"
-                    style={{ fontSize: "clamp(18px, 2.8vw, 30px)", color: "rgba(255,248,246,0.88)" }}
+                <span
+                  className="font-label-caps text-[9px] uppercase tracking-[0.45em]"
+                  style={{ color: "rgba(255,248,246,0.28)" }}
+                >
+                  Cafe &amp; Bakehouse
+                </span>
+              </motion.div>
+            )}
+
+            {/* STAGE 3 — Ambience choice (also stays visible during exit phase) */}
+            {contentKey === "choice" && (
+              <motion.div
+                key="choice"
+                className="flex flex-col items-center gap-7"
+                initial={{ opacity: 0, y: 36 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* Label */}
+                <div className="flex items-center gap-4">
+                  <div className="w-5 h-px" style={{ backgroundColor: "#a27e43" }} />
+                  <span
+                    className="font-label-caps text-[8px] uppercase tracking-[0.45em]"
+                    style={{ color: "rgba(255,248,246,0.35)" }}
                   >
-                    Step inside<br />with cafe ambience?
-                  </p>
+                    One more thing
+                  </span>
+                  <div className="w-5 h-px" style={{ backgroundColor: "#a27e43" }} />
+                </div>
 
-                  {/* Buttons */}
-                  <div className="flex flex-col gap-3 w-full max-w-[300px]">
-                    <button
-                      aria-hidden="false"
-                      onClick={() => handleChoice(true)}
-                      className="w-full py-4 px-6 font-label-caps text-[9px] uppercase tracking-[0.22em] text-left transition-opacity hover:opacity-85"
-                      style={{ backgroundColor: "rgba(255,248,246,0.92)", color: "#1B0F0A" }}
-                    >
-                      Enter With Ambience
-                    </button>
-                    <button
-                      aria-hidden="false"
-                      onClick={() => handleChoice(false)}
-                      className="w-full py-4 px-6 font-label-caps text-[9px] uppercase tracking-[0.22em] text-left transition-colors hover:border-white/40"
-                      style={{ border: "1px solid rgba(255,248,246,0.18)", color: "rgba(255,248,246,0.45)" }}
-                    >
-                      Continue Silent
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                {/* Question */}
+                <p
+                  className="font-headline-xl uppercase tracking-[0.04em] text-center leading-tight"
+                  style={{ fontSize: "clamp(20px, 3vw, 34px)", color: "rgba(255,248,246,0.88)" }}
+                >
+                  Step inside<br />with cafe ambience?
+                </p>
 
-          </div>
+                {/* Buttons */}
+                <div className="flex flex-col gap-3 w-full" style={{ maxWidth: 300 }}>
+                  <button
+                    onClick={() => handleChoice(true)}
+                    className="w-full py-4 px-6 font-label-caps text-[9px] uppercase tracking-[0.22em] text-left transition-opacity hover:opacity-80 active:opacity-70"
+                    style={{ backgroundColor: "rgba(255,248,246,0.92)", color: "#1B0F0A" }}
+                  >
+                    Enter With Ambience
+                  </button>
+                  <button
+                    onClick={() => handleChoice(false)}
+                    className="w-full py-4 px-6 font-label-caps text-[9px] uppercase tracking-[0.22em] text-left transition-all hover:border-white/40"
+                    style={{ border: "1px solid rgba(255,248,246,0.2)", color: "rgba(255,248,246,0.5)" }}
+                  >
+                    Continue Silent
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
         </div>
       </motion.div>
     </div>
