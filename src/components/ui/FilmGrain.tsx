@@ -5,6 +5,7 @@ import { useReducedMotion } from "@/lib/hooks";
 
 const W = 250;
 const H = 250;
+const FRAME_MS = 66; // ~15fps — intentional film-like cadence
 
 export function FilmGrain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,8 +24,7 @@ export function FilmGrain() {
 
     const tick = (t: number) => {
       raf = requestAnimationFrame(tick);
-      // ~15fps — film-like cadence
-      if (t - last < 66) return;
+      if (t - last < FRAME_MS) return;
       last = t;
 
       const img = ctx.createImageData(W, H);

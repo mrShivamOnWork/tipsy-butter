@@ -82,7 +82,7 @@ export function TodaysFavorites() {
           className="md:col-span-7 group cursor-default"
           data-cursor="taste"
         >
-          <RevealImage className="rounded-lg" delay={0.05}>
+          <RevealImage className="rounded-lg">
             <Image
               src={FEATURED[0].image}
               alt={FEATURED[0].title}
@@ -114,7 +114,7 @@ export function TodaysFavorites() {
         <div className="md:col-span-5 flex flex-col gap-16 md:mt-16">
 
           <motion.div {...fadeUp(0.12, reduced)} className="group cursor-default" data-cursor="taste">
-            <RevealImage className="rounded-lg border-r-[6px] border-surface-container-high" delay={0.18}>
+            <RevealImage className="rounded-lg border-r-[6px] border-surface-container-high">
               <Image
                 src={FEATURED[1].image}
                 alt={FEATURED[1].title}
@@ -136,7 +136,7 @@ export function TodaysFavorites() {
           </motion.div>
 
           <motion.div {...fadeUp(0.22, reduced)} className="group cursor-default self-end w-4/5" data-cursor="taste">
-            <RevealImage className="rounded-lg" delay={0.28}>
+            <RevealImage className="rounded-lg">
               <Image
                 src={FEATURED[2].image}
                 alt={FEATURED[2].title}

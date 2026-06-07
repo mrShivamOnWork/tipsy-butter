@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import { siteConfig } from "@/data/site";
 import { useReducedMotion } from "@/lib/hooks";
@@ -34,16 +34,16 @@ export function ContactContent() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
     setStatus("loading");
-    try {
-      await new Promise((r) => setTimeout(r, 1200));
+    // Open Facebook Messenger — the cafe's primary contact channel
+    window.open(siteConfig.facebook, "_blank", "noopener,noreferrer");
+    setTimeout(() => {
       setStatus("success");
       setForm({ name: "", email: "", subject: "inquiry", message: "" });
-    } catch {
-      setStatus("error");
-    }
+    }, 600);
   }
 
   return (
@@ -190,9 +190,9 @@ export function ContactContent() {
                 className="bg-surface-container-low border border-outline-variant/20 rounded-xl p-10 text-center"
               >
                 <div className="text-3xl mb-4">☕</div>
-                <h3 className="font-headline-xl font-bold text-primary uppercase text-2xl mb-3">Message Received!</h3>
+                <h3 className="font-headline-xl font-bold text-primary uppercase text-2xl mb-3">We&apos;ve Opened Facebook!</h3>
                 <p className="font-body-md text-on-surface-variant text-sm">
-                  Thanks for reaching out. We&apos;ll get back to you within 24 hours.
+                  We&apos;ve launched our Facebook page. Send us a message there — we reply within 24 hours.
                 </p>
                 <button
                   onClick={() => setStatus("idle")}

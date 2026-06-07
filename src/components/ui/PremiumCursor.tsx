@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { useReducedMotion, useIsDesktop } from "@/lib/hooks";
 
@@ -10,7 +10,9 @@ export function PremiumCursor() {
 
   const [label, setLabel] = useState("");
   const [expanded, setExpanded] = useState(false);
-  const [visible, setVisible] = useState(false);
+  // useRef avoids a re-render on first mouse move (visible only ever goes false→true once)
+  const hasAppeared = useRef(false);
+  const opacity = useMotionValue(0);
 
   // Raw position updated immediately
   const rawX = useMotionValue(-200);
@@ -29,7 +31,10 @@ export function PremiumCursor() {
     const onMove = (e: MouseEvent) => {
       rawX.set(e.clientX);
       rawY.set(e.clientY);
-      if (!visible) setVisible(true);
+      if (!hasAppeared.current) {
+        hasAppeared.current = true;
+        opacity.set(1);
+      }
     };
 
     const onOver = (e: MouseEvent) => {
@@ -53,7 +58,7 @@ export function PremiumCursor() {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseover", onOver);
     };
-  }, [isDesktop, reduced, rawX, rawY, visible]);
+  }, [isDesktop, reduced, rawX, rawY, opacity]);
 
   if (!isDesktop || reduced) return null;
 
@@ -76,12 +81,12 @@ export function PremiumCursor() {
         animate={{
           width: expanded ? 54 : 10,
           height: expanded ? 54 : 10,
-          opacity: visible ? 1 : 0,
           backgroundColor: expanded ? "#1B0F0A" : "transparent",
           borderColor: "#1B0F0A",
         }}
         transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
         style={{
+          opacity,
           borderRadius: "50%",
           border: "1.5px solid #1B0F0A",
           display: "flex",

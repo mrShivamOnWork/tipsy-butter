@@ -30,7 +30,7 @@ export function CafeExperience() {
           className="relative order-2 md:order-1"
           data-cursor="view"
         >
-          <RevealImage className="rounded-lg shadow-xl" delay={0.05} curtainColor="#1B0F0A">
+          <RevealImage className="rounded-lg shadow-xl">
             <Image
               src="/images/cafe/cafe_experience-3.jpg"
               alt="The Tipsy Butter warm cafe interior"

@@ -52,7 +52,7 @@ export function MiniGallery() {
           className="col-span-12 md:col-span-7 relative group overflow-hidden"
           data-cursor="memory"
         >
-          <RevealImage delay={0.05}>
+          <RevealImage>
             <Image
               src={IMAGES[0].src}
               alt={IMAGES[0].title}
@@ -78,7 +78,7 @@ export function MiniGallery() {
               className="relative group overflow-hidden aspect-[4/3]"
               data-cursor="memory"
             >
-              <RevealImage className="w-full h-full" delay={0.15 + i * 0.08}>
+              <RevealImage className="w-full h-full">
                 <Image
                   src={img.src}
                   alt={img.title}

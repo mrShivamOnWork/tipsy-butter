@@ -55,8 +55,12 @@ export const metadata: Metadata = {
     "The Tipsy Butter",
     "coffee Digos City",
     "bakery Davao del Sur",
+    "cafe Philippines",
+    "fresh pastries Digos",
+    "specialty coffee Davao del Sur",
   ],
   authors: [{ name: "The Tipsy Butter" }],
+  creator: "The Tipsy Butter",
   openGraph: {
     type: "website",
     locale: "en_PH",
@@ -69,13 +73,23 @@ export const metadata: Metadata = {
         url: "/images/hero/hero-1.jpg",
         width: 1200,
         height: 630,
-        alt: "The Tipsy Butter Cafe in Digos City",
+        alt: "The Tipsy Butter Cafe — fresh bakes and warm coffee in Digos City",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Tipsy Butter | Cafe & Bakehouse in Digos City",
+    description: "Fresh bakes. Warm coffee. Better days. Your daily ritual in Digos City.",
+    images: ["/images/hero/hero-1.jpg"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAmbience } from "@/lib/ambience-context";
 
-const BAR_HEIGHTS = [3, 6, 4, 7, 3]; // resting heights in px
+const BAR_HEIGHTS = [3, 6, 4, 7, 3];
+const MOUNT_DELAY_MS = 5000;
 
 export function AudioToggle() {
   const { enabled, hasChoice, toggle } = useAmbience();
@@ -12,7 +13,7 @@ export function AudioToggle() {
 
   useEffect(() => {
     // Delay appearance until after preloader + prompt have had space
-    const t = setTimeout(() => setMounted(true), 5000);
+    const t = setTimeout(() => setMounted(true), MOUNT_DELAY_MS);
     return () => clearTimeout(t);
   }, []);
 
