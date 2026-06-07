@@ -7,6 +7,9 @@ import { PageTransitionProvider } from "@/components/layout/PageTransitionProvid
 import { PreloaderWrapper } from "@/components/layout/PreloaderWrapper";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 import { PremiumCursor } from "@/components/ui/PremiumCursor";
+import { AmbienceProvider } from "@/lib/ambience-context";
+import { AmbiencePrompt } from "@/components/ui/AmbiencePrompt";
+import { AudioToggle } from "@/components/ui/AudioToggle";
 
 const josefin = Josefin_Sans({
   weight: ["100", "300", "400", "600", "700"],
@@ -121,16 +124,20 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-on-surface font-body-md overflow-x-hidden">
-        <PremiumCursor />
-        <SmoothScrollProvider>
-          <PreloaderWrapper>
-            <PageTransitionProvider>
-              <Navbar />
-              <main>{children}</main>
-              <Footer />
-            </PageTransitionProvider>
-          </PreloaderWrapper>
-        </SmoothScrollProvider>
+        <AmbienceProvider>
+          <PremiumCursor />
+          <AmbiencePrompt />
+          <AudioToggle />
+          <SmoothScrollProvider>
+            <PreloaderWrapper>
+              <PageTransitionProvider>
+                <Navbar />
+                <main>{children}</main>
+                <Footer />
+              </PageTransitionProvider>
+            </PreloaderWrapper>
+          </SmoothScrollProvider>
+        </AmbienceProvider>
       </body>
     </html>
   );

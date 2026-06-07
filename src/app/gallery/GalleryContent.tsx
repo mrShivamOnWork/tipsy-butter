@@ -1,269 +1,652 @@
 "use client";
 
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { galleryImages } from "@/data/gallery";
 import { useReducedMotion } from "@/lib/hooks";
 import { ImageGrain } from "@/components/ui/ImageGrain";
 
-const fadeUp = (delay = 0, reduced = false) =>
-  reduced
-    ? {}
-    : {
-        initial: { opacity: 0, y: 20 },
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true as const, amount: 0.08 },
-        transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] as const, delay },
-      };
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const FEATURED = [
-  { src: "/images/gallery/gallery-1.jpg", label: "01 — INTERIOR", title: "The Morning Glow", span: "large" },
-  { src: "/images/gallery/gallery-3.jpg", label: "02 — BAKE DETAIL", title: "Fresh Pastry", span: "small" },
-  { src: "/images/gallery/gallery-5.jpg", label: "03 — ARTISAN MIX", title: "Artisan Bakes", span: "small" },
-  { src: "/images/gallery/gallery-7.jpg", label: "04 — THE RITUAL", title: "Coffee Ceremony", span: "medium" },
-  { src: "/images/gallery/gallery-9.jpg", label: "05 — PERFECT PAIRING", title: "Latte & Pastry", span: "wide" },
+type Category = "craft" | "space" | "details";
+
+type WallItem = {
+  imgIdx: number;
+  title: string;
+  caption: string;
+  category: Category;
+  width: string;
+  mt: string;
+  rotation: number;
+  aspect: string;
+};
+
+// ─── Memory Wall Data ─────────────────────────────────────────────────────────
+// Rows: each inner array is one visual row on desktop.
+// width  = percentage of the row container this item occupies
+// mt     = margin-top offset to create the staggered "photos on a table" feel
+// rotation = degrees; max ±1.2 — enough to feel organic, not chaotic
+
+const WALL_ROWS: WallItem[][] = [
+  [
+    { imgIdx: 0,  title: "FIRST LIGHT",   caption: "Before the doors open,\nthe first trays leave the oven.",  category: "craft",   width: "57%", mt: "0px",  rotation: -0.8, aspect: "4/3"  },
+    { imgIdx: 2,  title: "GOLDEN HOUR",   caption: "Still warm. Still perfect.",                                category: "craft",   width: "40%", mt: "72px", rotation:  1.2, aspect: "3/4"  },
+  ],
+  [
+    { imgIdx: 3,  title: "A QUIET TABLE", caption: "Find your corner.\nStay awhile.",                          category: "space",   width: "42%", mt: "80px", rotation: -1.0, aspect: "4/3"  },
+    { imgIdx: 6,  title: "SOFT MORNING",  caption: "Light through the windows.\nCoffee getting cold.",         category: "space",   width: "54%", mt: "16px", rotation:  0.6, aspect: "4/3"  },
+  ],
+  [
+    { imgIdx: 7,  title: "FRESH BAKE",    caption: "From the oven to your hands.",                              category: "craft",   width: "72%", mt: "0px",  rotation: -0.5, aspect: "16/9" },
+  ],
+  [
+    { imgIdx: 5,  title: "THE RITUAL",    caption: "Every cup, a little ceremony.",                             category: "details", width: "46%", mt: "48px", rotation:  1.0, aspect: "4/5"  },
+    { imgIdx: 9,  title: "THE USUAL",     caption: "Two favorites. Every time.",                                category: "details", width: "48%", mt: "16px", rotation: -0.7, aspect: "4/3"  },
+  ],
+  [
+    { imgIdx: 12, title: "OUR CORNER",    caption: "A piece of Digos\nworth visiting.",                        category: "space",   width: "62%", mt: "0px",  rotation:  0.8, aspect: "16/9" },
+    { imgIdx: 8,  title: "SWEET THINGS",  caption: "Small indulgences\nthat make a day.",                     category: "details", width: "32%", mt: "64px", rotation: -1.2, aspect: "3/4"  },
+  ],
+  [
+    { imgIdx: 13, title: "SLOW SIP",      caption: "Take your time.",                                          category: "details", width: "44%", mt: "24px", rotation:  0.5, aspect: "4/3"  },
+    { imgIdx: 16, title: "THE DETAILS",   caption: "It's in the details.\nAlways.",                           category: "craft",   width: "48%", mt: "40px", rotation: -0.9, aspect: "4/5"  },
+  ],
+  [
+    { imgIdx: 17, title: "FIND US",       caption: "Our little corner\nof Digos City.",                       category: "space",   width: "58%", mt: "24px", rotation:  1.1, aspect: "4/3"  },
+  ],
 ];
+
+const FLAT_WALL: WallItem[] = WALL_ROWS.flat();
+
+// ─── Chapter Data ─────────────────────────────────────────────────────────────
+
+const CHAPTERS: { number: string; title: string; description: string; category: Category }[] = [
+  { number: "01", title: "THE CRAFT",   description: "Fresh pastries, careful hands,\ndaily baking rituals.",          category: "craft"   },
+  { number: "02", title: "THE SPACE",   description: "Quiet tables,\nwarm corners,\nslow mornings.",                    category: "space"   },
+  { number: "03", title: "THE DETAILS", description: "Small things that make\nordinary days special.",                 category: "details" },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fadeUp(delay = 0, reduced = false) {
+  if (reduced) return {};
+  return {
+    initial: { opacity: 0, y: 16 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true as const, amount: 0.08 },
+    transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] as const, delay },
+  };
+}
+
+function fadeIn(delay = 0, reduced = false) {
+  if (reduced) return {};
+  return {
+    initial: { opacity: 0 },
+    whileInView: { opacity: 1 },
+    viewport: { once: true as const, amount: 0.05 },
+    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const, delay },
+  };
+}
+
+// ─── Memory Viewer ────────────────────────────────────────────────────────────
+// Elevated lightbox: shows editorial context (label, title, caption) alongside
+// the photograph. Opened from the Memory Wall only.
+
+function MemoryViewer({
+  idx,
+  total,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  idx: number;
+  total: number;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const card = FLAT_WALL[idx];
+  const img = galleryImages[card.imgIdx];
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") onPrev();
+      if (e.key === "ArrowRight") onNext();
+    };
+    window.addEventListener("keydown", handle);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", handle);
+    };
+  }, [onClose, onPrev, onNext]);
+
+  return (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={card.title}
+      className="fixed inset-0 z-[400] flex items-center justify-center p-6 md:p-12"
+      style={{ background: "rgba(14,8,5,0.96)" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.36, ease: "easeInOut" }}
+      onClick={onClose}
+    >
+      {/* Counter */}
+      <span
+        className="absolute top-6 left-7 z-20 font-label-caps text-[8px] text-white/25 tracking-[0.26em] uppercase select-none pointer-events-none"
+        aria-hidden="true"
+      >
+        {String(idx + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+      </span>
+
+      {/* Close */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        aria-label="Close viewer"
+        className="absolute top-6 right-7 z-20 font-label-caps text-[8px] text-white/30 hover:text-white/70 tracking-[0.22em] uppercase transition-colors duration-200"
+      >
+        ESC
+      </button>
+
+      {/* Animated content */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={idx}
+          className="flex flex-col items-center gap-5 w-full max-w-[500px]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Editorial label */}
+          <span className="font-label-caps text-[7px] tracking-[0.34em] text-white/25 uppercase">
+            EST. 2024 — DIGOS CITY
+          </span>
+
+          {/* Photograph */}
+          <div
+            className="relative w-full overflow-hidden"
+            style={{ aspectRatio: card.aspect }}
+          >
+            <Image
+              src={img.src}
+              alt={img.alt}
+              fill
+              className="object-cover"
+              sizes="500px"
+              priority
+            />
+            <ImageGrain grainOpacity={0.15} vignetteOpacity={0.10} />
+          </div>
+
+          {/* Title + caption */}
+          <div className="text-center flex flex-col gap-2">
+            <h2 className="font-headline-sm text-white tracking-[0.20em] uppercase text-[15px] md:text-base">
+              {card.title}
+            </h2>
+            <p className="font-body-sm text-white/40 text-[11px] leading-relaxed whitespace-pre-line">
+              {card.caption}
+            </p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Prev */}
+      {idx > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          aria-label="Previous memory"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-16 flex items-center justify-center text-white/20 hover:text-white/55 transition-colors duration-200"
+        >
+          ←
+        </button>
+      )}
+
+      {/* Next */}
+      {idx < total - 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          aria-label="Next memory"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-16 flex items-center justify-center text-white/20 hover:text-white/55 transition-colors duration-200"
+        >
+          →
+        </button>
+      )}
+    </motion.div>
+  );
+}
+
+// ─── Archive Lightbox ─────────────────────────────────────────────────────────
+// Pure image-only lightbox for the Photo Archive. No editorial context — just
+// the photograph at full size. Keeps browsing fast and clean.
+
+function ArchiveLightbox({
+  index,
+  total,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  index: number;
+  total: number;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const img = galleryImages[index];
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") onPrev();
+      if (e.key === "ArrowRight") onNext();
+    };
+    window.addEventListener("keydown", handle);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", handle);
+    };
+  }, [onClose, onPrev, onNext]);
+
+  return (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${img.alt} — ${index + 1} of ${total}`}
+      className="fixed inset-0 z-[400] bg-[#0e0805]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      onClick={onClose}
+    >
+      <span
+        className="absolute top-6 left-7 z-20 font-label-caps text-[8px] text-white/25 tracking-[0.26em] uppercase select-none pointer-events-none"
+        aria-hidden="true"
+      >
+        {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+      </span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        aria-label="Close"
+        className="absolute top-6 right-7 z-20 font-label-caps text-[8px] text-white/30 hover:text-white/70 tracking-[0.22em] uppercase transition-colors duration-200"
+      >
+        ESC
+      </button>
+
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={index}
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.28, ease: "easeInOut" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Image
+            src={img.src}
+            alt={img.alt}
+            fill
+            className="object-contain"
+            sizes="100vw"
+            priority
+          />
+          <ImageGrain grainOpacity={0.12} vignetteOpacity={0} />
+        </motion.div>
+      </AnimatePresence>
+
+      {index > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          aria-label="Previous image"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-16 flex items-center justify-center text-white/25 hover:text-white/65 transition-colors duration-200"
+        >
+          ←
+        </button>
+      )}
+      {index < total - 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          aria-label="Next image"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-16 flex items-center justify-center text-white/25 hover:text-white/65 transition-colors duration-200"
+        >
+          →
+        </button>
+      )}
+    </motion.div>
+  );
+}
+
+// ─── Gallery Content ──────────────────────────────────────────────────────────
 
 export function GalleryContent() {
   const reduced = useReducedMotion();
+  const archiveTotal = galleryImages.length;
+  const wallTotal    = FLAT_WALL.length;
+
+  const [viewerIdx,  setViewerIdx]  = useState<number | null>(null);
+  const [archiveIdx, setArchiveIdx] = useState<number | null>(null);
+
+  const openViewer  = useCallback((i: number) => setViewerIdx(i), []);
+  const closeViewer = useCallback(() => setViewerIdx(null), []);
+  const prevViewer  = useCallback(() => setViewerIdx((i) => (i !== null && i > 0 ? i - 1 : i)), []);
+  const nextViewer  = useCallback(() => setViewerIdx((i) => (i !== null && i < wallTotal - 1 ? i + 1 : i)), []);
+
+  const openArchive  = useCallback((i: number) => setArchiveIdx(i), []);
+  const closeArchive = useCallback(() => setArchiveIdx(null), []);
+  const prevArchive  = useCallback(() => setArchiveIdx((i) => (i !== null && i > 0 ? i - 1 : i)), []);
+  const nextArchive  = useCallback(() => setArchiveIdx((i) => (i !== null && i < archiveTotal - 1 ? i + 1 : i)), []);
 
   return (
     <>
-      {/* Fixed rotating label */}
-      <div
-        className="fixed top-24 right-8 z-[60] opacity-20 pointer-events-none select-none hidden lg:block font-label-caps text-[10px] uppercase tracking-[0.2em] -rotate-90 origin-right text-on-surface"
-        aria-hidden="true"
-      >
-        Visual Musings — Est. 2024
-      </div>
-
-      {/* Hero */}
-      <section className="px-6 md:px-10 py-20 max-w-[1440px] mx-auto">
-        <motion.div {...fadeUp(0, reduced)} className="border-l-4 border-primary pl-6 mb-10">
-          <p className="font-label-caps text-secondary mb-2 text-[11px] tracking-[0.2em] uppercase">Heritage & Craft</p>
-          <h1
-            className="font-headline-xl font-extrabold text-primary uppercase tracking-[-0.02em]"
-            style={{ fontSize: "clamp(40px, 8vw, 80px)" }}
-          >
-            Visual Musings
-          </h1>
-        </motion.div>
-
-        <motion.div {...fadeUp(0.1, reduced)} className="flex justify-between items-end gap-10 mb-16">
-          <p className="font-body-lg text-on-surface-variant max-w-2xl text-[16px] leading-relaxed">
-            Pull up a chair and stay a while. We&apos;ve collected these small glimpses of our daily life—
-            the warmth of the morning sun, the simple joy of a fresh bake, and the quiet moments shared over coffee.
-          </p>
-          <span className="hidden md:block font-label-caps text-[10px] text-outline opacity-50 mb-1 uppercase tracking-widest whitespace-nowrap">
-            CAPTURED MOMENTS — EST. 2024
-          </span>
-        </motion.div>
-
-        {/* Main asymmetric grid */}
-        <div className="grid grid-cols-12 gap-6">
-
-          {/* Large vertical — 7 cols */}
-          <motion.div
-            {...fadeUp(0, reduced)}
-            className="col-span-12 md:col-span-7 relative group overflow-hidden"
-            data-cursor="memory"
-          >
-            <Image
-              src={FEATURED[0].src}
-              alt={FEATURED[0].title}
-              width={900}
-              height={900}
-              className="w-full object-cover staggered-image"
-              style={{ aspectRatio: '1/1' }}
-              sizes="(max-width: 768px) 100vw, 58vw"
-            />
-            <ImageGrain />
-            <div className="absolute bottom-8 left-8 glass-effect p-6 border border-outline/10 flex flex-col gap-2 z-20">
-              <span className="font-label-caps text-primary/40 text-[10px] block">{FEATURED[0].label}</span>
-              <h3 className="font-headline-sm font-bold uppercase text-primary">{FEATURED[0].title}</h3>
-            </div>
-          </motion.div>
-
-          {/* Two small — 5 cols stacked */}
-          <div className="col-span-12 md:col-span-5 flex flex-col gap-6">
-            {FEATURED.slice(1, 3).map((img, i) => (
-              <motion.div
-                key={img.label}
-                {...fadeUp(0.1 + i * 0.08, reduced)}
-                className="relative group overflow-hidden aspect-[16/10]"
-              data-cursor="memory"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.title}
-                  fill
-                  className="object-cover staggered-image"
-                  sizes="(max-width: 768px) 100vw, 40vw"
-                />
-                <ImageGrain />
-                <div className="absolute top-4 right-4 bg-surface p-3 border border-outline/10 z-20">
-                  <span className="font-label-caps text-primary text-[10px]">{img.label}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Medium — 4 cols */}
-          <motion.div
-            {...fadeUp(0.15, reduced)}
-            className="col-span-12 md:col-span-4 relative group overflow-hidden aspect-[9/10]"
-            data-cursor="memory"
-          >
-            <Image
-              src={FEATURED[3].src}
-              alt={FEATURED[3].title}
-              fill
-              className="object-cover staggered-image"
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-            <ImageGrain />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/20 backdrop-blur-sm z-20">
-              <p className="font-headline-sm text-surface uppercase tracking-widest font-bold">The Ritual</p>
-            </div>
-            <div className="absolute top-4 left-4 bg-surface/80 p-2">
-              <span className="font-label-caps text-[10px] text-primary">VISUAL MUSINGS — {FEATURED[3].label.split("—")[0].trim()}</span>
-            </div>
-          </motion.div>
-
-          {/* Wide — 8 cols */}
-          <motion.div
-            {...fadeUp(0.2, reduced)}
-            className="col-span-12 md:col-span-8 relative group overflow-hidden aspect-video"
-            data-cursor="memory"
-          >
-            <Image
-              src={FEATURED[4].src}
-              alt={FEATURED[4].title}
-              fill
-              className="object-cover staggered-image"
-              sizes="(max-width: 768px) 100vw, 66vw"
-            />
-            <ImageGrain />
-            <div className="absolute top-0 left-0 w-full h-full border-[24px] border-surface/15 pointer-events-none z-20" />
-            <div className="absolute bottom-6 right-6 bg-primary text-on-primary p-4">
-              <span className="font-label-caps uppercase text-[10px] tracking-wider">Perfect Pairing</span>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Atmosphere break — full width */}
-      <section className="w-full relative h-[60vh] flex items-center overflow-hidden bg-primary-container">
-        <div className="absolute inset-0 opacity-50">
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 1 — HERO
+          Atmospheric full-bleed opener. Warm overlay + slow breathing image.
+      ══════════════════════════════════════════════════════════════════════ */}
+      <section className="relative h-[88vh] min-h-[560px] overflow-hidden">
+        {/* Background image with the global hero-breathe animation */}
+        <div className="absolute inset-0 hero-breathe">
           <Image
-            src="/images/gallery/gallery-11.jpg"
-            alt="Tipsy Butter cafe atmosphere"
+            src="/images/gallery/gallery-7.jpg"
+            alt="Warm morning light inside The Tipsy Butter"
             fill
             className="object-cover"
             sizes="100vw"
+            priority
           />
         </div>
-        <ImageGrain grainOpacity={0.22} vignetteOpacity={0.15} />
-        <div className="relative px-6 md:px-10 z-10 w-full max-w-[1440px] mx-auto">
-          <div className="max-w-3xl">
-            <span className="font-label-caps text-secondary-fixed mb-4 block uppercase tracking-[0.2em]">ATMOSPHERE</span>
-            <h2
-              className="font-headline-xl font-extrabold text-surface-bright mb-6 uppercase tracking-[-0.02em]"
-              style={{ fontSize: "clamp(24px, 4vw, 48px)" }}
-            >
-              &ldquo;The scent of rising dough is the only clock we follow.&rdquo;
-            </h2>
-            <div className="w-24 h-px bg-secondary-fixed" />
-          </div>
-        </div>
-      </section>
 
-      {/* Final 3-col grid */}
-      <section className="px-6 md:px-10 py-20 max-w-[1440px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Warm dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/65" />
+        <div className="absolute inset-0" style={{ background: "rgba(27,15,10,0.18)" }} />
 
-          {/* Card with text + image */}
-          <motion.div
-            {...fadeUp(0, reduced)}
-            className="bg-surface-container-high p-8 flex flex-col justify-between min-h-[380px]"
+        {/* Text */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+          <motion.span
+            className="font-label-caps text-[8px] tracking-[0.34em] text-white/35 uppercase mb-5"
+            {...(!reduced ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.9, delay: 0.2 } } : {})}
           >
-            <div>
-              <div className="flex justify-between items-start">
-                <span className="font-label-caps text-primary/40 block mb-2 text-[10px]">05 — BEVERAGE</span>
-                <span className="font-label-caps text-[10px] text-outline uppercase">Est. 2024</span>
-              </div>
-              <h4 className="font-headline-sm font-bold uppercase mb-4 text-primary">The Espresso Roast</h4>
-              <p className="font-body-md text-on-surface-variant text-sm">
-                Our signature blend, balanced specifically to cut through the richness of high-fat butter pastry.
-              </p>
-            </div>
-            <div className="relative h-48 overflow-hidden rounded mt-8">
-              <Image
-                src="/images/gallery/gallery-13.jpg"
-                alt="Espresso roast"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-              <ImageGrain vignetteOpacity={0.18} />
-            </div>
-          </motion.div>
+            EST. 2024 — DIGOS CITY
+          </motion.span>
 
-          {/* Wide image — 2 cols */}
-          <motion.div
-            {...fadeUp(0.12, reduced)}
-            className="md:col-span-2 relative overflow-hidden group"
-            data-cursor="memory"
+          <motion.h1
+            className="font-headline-xl text-white uppercase leading-none tracking-[0.07em]"
+            style={{ fontSize: "clamp(48px,10vw,116px)" }}
+            {...(!reduced ? { initial: { opacity: 0, y: 22 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1.05, ease: [0.22, 1, 0.36, 1], delay: 0.35 } } : {})}
           >
-            <Image
-              src="/images/gallery/gallery-15.jpg"
-              alt="Captured moment"
-              width={1200}
-              height={600}
-              className="w-full object-cover staggered-image"
-              style={{ aspectRatio: '2/1' }}
-              sizes="(max-width: 768px) 100vw, 66vw"
-            />
-            <ImageGrain />
-            <div className="absolute bottom-0 right-0 bg-primary text-on-primary p-8 z-20">
-              <span className="font-label-caps uppercase text-[10px] tracking-wider">CAPTURED MOMENT — 06</span>
-            </div>
-            <div className="absolute top-4 right-4 text-surface-bright/50 font-label-caps text-[10px] uppercase">
-              VISUAL MUSINGS GALLERY
+            THE JOURNAL
+          </motion.h1>
+
+          <motion.div
+            className="mt-8 flex flex-col items-center gap-1"
+            {...(!reduced ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.9, delay: 0.68 } } : {})}
+          >
+            <p className="font-body-md text-white/50 text-[13px] md:text-sm tracking-[0.05em]">
+              Little moments from our corner of Digos.
+            </p>
+            <div className="mt-3 flex flex-col items-center gap-[3px]">
+              {["Fresh bakes.", "Quiet tables.", "Warm coffee."].map((line) => (
+                <span key={line} className="font-label-caps text-white/28 text-[9px] tracking-[0.22em] uppercase">
+                  {line}
+                </span>
+              ))}
             </div>
           </motion.div>
         </div>
+
+        <ImageGrain grainOpacity={0.13} vignetteOpacity={0.10} />
       </section>
 
-      {/* Full gallery grid */}
-      <section className="px-6 md:px-10 pb-20 max-w-[1440px] mx-auto">
-        <motion.div {...fadeUp(0, reduced)} className="mb-12">
-          <h2 className="font-headline-xl font-extrabold text-primary uppercase tracking-[-0.02em] text-3xl">
-            All Moments
-          </h2>
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 2 — MEMORY WALL
+          Desktop: organic editorial layout — rows of images with staggered
+          vertical offsets and subtle rotations. Like photos on a table.
+          Mobile: simple 2-column grid, no rotation.
+      ══════════════════════════════════════════════════════════════════════ */}
+
+      {/* Desktop memory wall */}
+      <section className="hidden md:block px-10 lg:px-16 xl:px-24 py-24 md:py-32 bg-[#FAF3E6]">
+        <motion.div className="mb-16 flex items-center gap-4" {...fadeUp(0, reduced)}>
+          <div className="w-8 h-px bg-[#BB9457]" />
+          <span className="font-label-caps text-[8px] tracking-[0.30em] text-[#4f4541] uppercase">
+            Memories — Vol. I
+          </span>
         </motion.div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {galleryImages.map((img, i) => (
-            <motion.div
-              key={img.src}
-              {...fadeUp(Math.min(i * 0.04, 0.3), reduced)}
-              className="relative overflow-hidden group aspect-square"
-            data-cursor="memory"
+
+        <div className="flex flex-col gap-14 xl:gap-16">
+          {WALL_ROWS.map((row, rowIdx) => (
+            <div key={rowIdx} className="flex items-start gap-6 md:gap-8">
+              {row.map((item, itemIdx) => {
+                const flatIdx = FLAT_WALL.indexOf(item);
+                const img = galleryImages[item.imgIdx];
+                return (
+                  <motion.div
+                    key={item.imgIdx}
+                    className="flex-shrink-0"
+                    style={{
+                      width: item.width,
+                      marginTop: item.mt,
+                      transform: `rotate(${item.rotation}deg)`,
+                    }}
+                    {...(!reduced ? {
+                      initial: { opacity: 0, y: 22 },
+                      whileInView: { opacity: 1, y: 0 },
+                      viewport: { once: true, amount: 0.08 },
+                      transition: { duration: 0.88, ease: [0.22, 1, 0.36, 1], delay: itemIdx * 0.12 },
+                    } : {})}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => openViewer(flatIdx)}
+                      data-cursor="view"
+                      className="relative block w-full overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
+                      style={{ aspectRatio: item.aspect }}
+                      aria-label={`Open memory: ${item.title}`}
+                    >
+                      {/* Image */}
+                      <Image
+                        src={img.src}
+                        alt={img.alt}
+                        fill
+                        className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                        sizes="(min-width: 1280px) 55vw, 65vw"
+                        priority={rowIdx === 0}
+                      />
+                      <ImageGrain grainOpacity={0.20} vignetteOpacity={0.14} />
+
+                      {/* Hover: gradient reveal */}
+                      <div className="absolute inset-0 z-[6] bg-gradient-to-t from-black/62 via-black/18 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[700ms] ease-out" />
+
+                      {/* Hover: text */}
+                      <div className="absolute bottom-0 left-0 right-0 z-[7] p-5 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-[550ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
+                        <span className="block font-label-caps text-[7px] tracking-[0.28em] text-white/40 uppercase mb-1.5">
+                          {String(flatIdx + 1).padStart(2, "0")}
+                        </span>
+                        <span className="block font-headline-sm text-white text-[13px] tracking-[0.14em] uppercase">
+                          {item.title}
+                        </span>
+                        <span className="block font-body-sm text-white/48 text-[10px] mt-1 leading-relaxed whitespace-pre-line">
+                          {item.caption}
+                        </span>
+                      </div>
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Mobile memory wall — 2-col grid, no rotation, title always visible */}
+      <section className="md:hidden grid grid-cols-2 gap-[1px]" style={{ background: "#1B0F0A" }}>
+        {FLAT_WALL.map((item, i) => {
+          const img = galleryImages[item.imgIdx];
+          return (
+            <button
+              key={item.imgIdx}
+              type="button"
+              onClick={() => openViewer(i)}
+              className="relative overflow-hidden focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
+              style={{ aspectRatio: "4/3" }}
+              aria-label={`Open memory: ${item.title}`}
             >
               <Image
                 src={img.src}
-                alt={img.alt || "Gallery image"}
+                alt={img.alt}
                 fill
-                className="object-cover staggered-image"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover"
+                sizes="50vw"
+                priority={i < 4}
               />
-              <ImageGrain grainOpacity={0.22} vignetteOpacity={0.22} />
+              <ImageGrain grainOpacity={0.18} vignetteOpacity={0.12} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent z-[6]" />
+              <span className="absolute bottom-3 left-3 z-[7] font-label-caps text-[7px] tracking-[0.22em] text-white/55 uppercase">
+                {item.title}
+              </span>
+            </button>
+          );
+        })}
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 3 — MEMORY CHAPTERS
+          Three editorial story categories. Minimal, no images.
+      ══════════════════════════════════════════════════════════════════════ */}
+      <section className="px-6 md:px-16 xl:px-24 py-20 md:py-28 bg-[#FAF3E6]">
+        <motion.div className="mb-12 flex items-center gap-4" {...fadeUp(0, reduced)}>
+          <div className="w-8 h-px bg-[#BB9457]" />
+          <span className="font-label-caps text-[8px] tracking-[0.30em] text-[#4f4541] uppercase">
+            Stories from the cafe
+          </span>
+        </motion.div>
+
+        <div className="divide-y divide-[#d2c3be]">
+          {CHAPTERS.map((ch, i) => (
+            <motion.div
+              key={ch.number}
+              className="py-9 md:py-11 flex flex-col md:flex-row md:items-start gap-4 md:gap-14"
+              {...fadeUp(i * 0.09, reduced)}
+            >
+              <span className="font-label-caps text-[8px] tracking-[0.28em] text-[#BB9457] uppercase md:w-12 flex-shrink-0 pt-0.5">
+                {ch.number}
+              </span>
+              <div className="flex flex-col gap-2">
+                <h3 className="font-headline-md text-[#1B0F0A] text-xl md:text-2xl tracking-[0.10em] uppercase">
+                  {ch.title}
+                </h3>
+                <p className="font-body-md text-[#4f4541] text-sm leading-relaxed whitespace-pre-line">
+                  {ch.description}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 4 — PHOTO ARCHIVE
+          All 18 images. Clean, simple. No hover effects. Fast.
+          Purpose: visitors who just want to browse the full photo set.
+      ══════════════════════════════════════════════════════════════════════ */}
+      <section className="px-6 md:px-16 xl:px-24 py-16 md:py-24 bg-[#f4ede0]">
+        <motion.div className="mb-10 flex items-center gap-4" {...fadeUp(0, reduced)}>
+          <div className="w-8 h-px bg-[#BB9457]" />
+          <span className="font-label-caps text-[8px] tracking-[0.30em] text-[#4f4541] uppercase">
+            The full collection
+          </span>
+        </motion.div>
+
+        {/* Desktop: 3-col, aspect ratios from data */}
+        <div className="hidden md:grid grid-cols-3 gap-[2px]">
+          {galleryImages.map((img, i) => {
+            const ratio =
+              img.aspect === "portrait" ? "3/4" : img.aspect === "wide" ? "16/9" : "1/1";
+            return (
+              <motion.button
+                key={img.src}
+                type="button"
+                onClick={() => openArchive(i)}
+                data-cursor="view"
+                className="relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
+                style={{ aspectRatio: ratio }}
+                aria-label={img.alt}
+                {...fadeIn((i % 3) * 0.06, reduced)}
+              >
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  className="object-cover transition-transform duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                  sizes="33vw"
+                  priority={i < 6}
+                />
+                <ImageGrain grainOpacity={0.16} vignetteOpacity={0.08} />
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Mobile: 2-col, uniform aspect */}
+        <div className="md:hidden grid grid-cols-2 gap-[1px]">
+          {galleryImages.map((img, i) => (
+            <button
+              key={img.src}
+              type="button"
+              onClick={() => openArchive(i)}
+              className="relative overflow-hidden focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
+              style={{ aspectRatio: "4/3" }}
+              aria-label={img.alt}
+            >
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                className="object-cover"
+                sizes="50vw"
+                priority={i < 4}
+              />
+              <ImageGrain grainOpacity={0.14} vignetteOpacity={0} />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Memory Viewer (wall images) ── */}
+      <AnimatePresence>
+        {viewerIdx !== null && (
+          <MemoryViewer
+            idx={viewerIdx}
+            total={wallTotal}
+            onClose={closeViewer}
+            onPrev={prevViewer}
+            onNext={nextViewer}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Archive Lightbox (full collection) ── */}
+      <AnimatePresence>
+        {archiveIdx !== null && (
+          <ArchiveLightbox
+            index={archiveIdx}
+            total={archiveTotal}
+            onClose={closeArchive}
+            onPrev={prevArchive}
+            onNext={nextArchive}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
-
-

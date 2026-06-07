@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { GalleryContent } from "./GalleryContent";
 
 export const metadata: Metadata = {
-  title: "Gallery",
+  title: "The Journal",
   description:
-    "Browse The Tipsy Butter photo gallery — pastries, coffee, cafe interior, and daily bakes from our bakehouse in Digos City.",
+    "Little moments from The Tipsy Butter — fresh bakes, quiet tables, warm coffee. A visual journal from our corner of Digos City.",
 };
 
 export default function GalleryPage() {
