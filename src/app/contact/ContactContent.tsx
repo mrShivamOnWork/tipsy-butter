@@ -43,7 +43,7 @@ export function ContactContent() {
 
   setStatus("loading");
 
-  const formspreeId = process.env.NEXT_PUBLIC_FORMSPREE_ID;
+ const formspreeId = "mqeopjgv";
 
   if (!formspreeId) {
     console.warn("Formspree ID missing — opening Facebook fallback");
