@@ -63,6 +63,10 @@ export function MiniGallery() {
               sizes="(max-width: 768px) 100vw, 58vw"
             />
           </RevealImage>
+          <div className="absolute bottom-8 left-8 glass-effect p-5 border border-outline/10 z-20">
+            <span className="font-label-caps text-primary/40 text-[10px] block mb-1">{IMAGES[0].label}</span>
+            <h3 className="font-headline-sm font-bold uppercase text-primary">{IMAGES[0].title}</h3>
+          </div>
         </motion.div>
 
         {/* Two stacked — 5 cols */}
@@ -84,6 +88,9 @@ export function MiniGallery() {
                   sizes="(max-width: 768px) 100vw, 40vw"
                 />
               </RevealImage>
+              <div className="absolute top-4 right-4 bg-surface p-3 border border-outline/10 z-20">
+                <span className="font-label-caps text-primary text-[10px]">{img.label}</span>
+              </div>
             </motion.div>
           ))}
         </div>
