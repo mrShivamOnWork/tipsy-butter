@@ -1,26 +1,390 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ── Brand Colors — Artisan Minimalist (Warm Cream Edition) ── */
+  /* FAF3E6 "Fresh Pastry" bg · #1B0F0A "Espresso Roast" primary · #BB9457 "Caramel Gold" accent */
+
+  --color-background:                 #FAF3E6;
+  --color-surface:                    #FAF3E6;
+  --color-surface-dim:                #e9d6d1;
+  --color-surface-bright:             #ffffff;
+  --color-surface-container-lowest:   #ffffff;
+  --color-surface-container-low:      #f4ede0;
+  --color-surface-container:          #eee7db;
+  --color-surface-container-high:     #e8e2d5;
+  --color-surface-container-highest:  #e2dcd0;
+  --color-surface-variant:            #e8e2d5;
+  --color-surface-tint:               #6d5a53;
+
+  --color-primary:                    #1B0F0A;
+  --color-on-primary:                 #ffffff;
+  --color-primary-container:          #261913;
+  --color-on-primary-container:       #947f78;
+  --color-primary-fixed:              #f7ddd4;
+  --color-primary-fixed-dim:          #dac1b9;
+  --color-on-primary-fixed:           #261913;
+  --color-on-primary-fixed-variant:   #54433d;
+
+  --color-secondary:                  #625e54;
+  --color-on-secondary:               #ffffff;
+  --color-secondary-container:        #e8e2d5;
+  --color-on-secondary-container:     #68645a;
+  --color-secondary-fixed:            #e8e2d5;
+  --color-secondary-fixed-dim:        #ccc6ba;
+  --color-on-secondary-fixed:         #1e1b14;
+  --color-on-secondary-fixed-variant: #4a473d;
+
+  /* Tertiary = Caramel Gold accent */
+  --color-tertiary:                   #BB9457;
+  --color-on-tertiary:                #ffffff;
+  --color-tertiary-container:         #281800;
+  --color-on-tertiary-container:      #a27e43;
+  --color-tertiary-fixed:             #ffdeae;
+  --color-tertiary-fixed-dim:         #ebc07e;
+  --color-on-tertiary-fixed:          #281800;
+  --color-on-tertiary-fixed-variant:  #5e410b;
+
+  --color-on-surface:                 #231916;
+  --color-on-surface-variant:         #4f4541;
+  --color-outline:                    #817570;
+  --color-outline-variant:            #d2c3be;
+  --color-inverse-surface:            #392e2a;
+  --color-inverse-on-surface:         #ffede8;
+  --color-inverse-primary:            #dac1b9;
+
+  --color-error:                      #ba1a1a;
+  --color-on-error:                   #ffffff;
+  --color-error-container:            #ffdad6;
+  --color-on-error-container:         #93000a;
+
+  /* ── Typography — Artisan Minimalist System ── */
+  /* Display: Josefin Sans | Body: Hanken Grotesk | Labels: Plus Jakarta Sans */
+  --font-display-lg:    var(--font-josefin), 'Josefin Sans', system-ui, sans-serif;
+  --font-headline-xl:   var(--font-josefin), 'Josefin Sans', system-ui, sans-serif;
+  --font-headline-lg:   var(--font-josefin), 'Josefin Sans', system-ui, sans-serif;
+  --font-headline-lg-mobile: var(--font-josefin), 'Josefin Sans', system-ui, sans-serif;
+  --font-headline-md:   var(--font-josefin), 'Josefin Sans', system-ui, sans-serif;
+  --font-headline-sm:   var(--font-josefin), 'Josefin Sans', system-ui, sans-serif;
+  --font-body-lg:       var(--font-hanken), 'Hanken Grotesk', system-ui, sans-serif;
+  --font-body-md:       var(--font-hanken), 'Hanken Grotesk', system-ui, sans-serif;
+  --font-body-sm:       var(--font-hanken), 'Hanken Grotesk', system-ui, sans-serif;
+  --font-label-caps:    var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-label-accent:  var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-accent-hand:   var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-chalk-hand:    var(--font-caveat), 'Caveat', cursive;
+  --font-sans:          var(--font-hanken), 'Hanken Grotesk', system-ui, sans-serif;
+
+  /* ── Spacing ── */
+  --spacing-section-gap:      7.5rem;
+  --spacing-margin-desktop:   4rem;
+  --spacing-margin-mobile:    1.5rem;
+  --spacing-gutter:           1.5rem;
+  --spacing-unit:             0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  /* scroll-behavior handled by Lenis */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FAF3E6;
+  color: #231916;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  letter-spacing: 0.005em;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-feature-settings: "kern" 1;
+}
+
+p, li, a {
+  line-height: 1.7;
+}
+
+::selection {
+  background-color: #e8e2d5;
+  color: #1B0F0A;
+}
+
+/* ── Marquee ── */
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  white-space: nowrap;
+  gap: 0;
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 5.5rem;
+  flex-shrink: 0;
+  min-width: 100%;
+  justify-content: space-around;
+  animation: marquee-scroll 45s linear infinite;
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+/* ── Premium image hover — all group-hover images get slower, subtler scale ── */
+img.transition-transform {
+  transition-duration: 1300ms !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.group:hover img.transition-transform {
+  transform: scale(1.03) !important;
+}
+
+/* ── Staggered image hover ── */
+.staggered-image {
+  transition: transform 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.staggered-image:hover {
+  transform: scale(1.03);
+}
+
+/* ── Editorial image frame ── */
+.editorial-image-frame {
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.editorial-image-frame:hover {
+  transform: scale(1.01);
+}
+
+/* ── Stamp circle (decorative round badge) ── */
+.stamp-circle {
+  width: 80px;
+  height: 80px;
+  border: 1px dashed rgba(35, 25, 22, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform: rotate(-12deg);
+}
+
+/* ── Brand watermark utility ── */
+.watermark {
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.04;
+  font-family: var(--font-josefin), 'Josefin Sans', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.brand-watermark {
+  font-family: var(--font-josefin), 'Josefin Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Menu board texture (dark chalkboard panel) ── */
+.menu-board-texture {
+  background-color: #1b0f0a;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.015) 1px, transparent 0);
+  background-size: 48px 48px;
+}
+
+/* ── Dotted leader (menu items) ── */
+.dotted-leader {
+  flex-grow: 1;
+  border-bottom: 1px dotted currentColor;
+  margin: 0 10px;
+  margin-bottom: 4px;
+  opacity: 0.2;
+}
+
+/* ── Card lift ── */
+.card-lift {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.5s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(35, 25, 22, 0.10);
+}
+
+/* ── Glass effect ── */
+.glass-effect {
+  background: rgba(255, 248, 246, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Page enter animation ── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: page-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid rgba(98, 94, 84, 0.5);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Smooth image transitions ── */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Hero living photo — very slow breathing scale ── */
+.hero-breathe {
+  animation: hero-breathe 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes hero-breathe {
+  from { transform: scale(1) translate(0, 0); }
+  to   { transform: scale(1.05) translate(-0.8%, -0.4%); }
+}
+
+/* ── Custom cursor — hide native cursor on desktop ── */
+@media (hover: hover) and (pointer: fine) {
+  .custom-cursor,
+  .custom-cursor * {
+    cursor: none !important;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .marquee-track,
+  .staggered-image:hover,
+  .card-lift:hover {
+    animation: none;
+    transform: none;
+  }
+
+  .hero-breathe {
+    animation: none;
+  }
+
+  img.transition-transform {
+    transition-duration: 300ms !important;
+  }
+
+  .group:hover img.transition-transform {
+    transform: none !important;
+  }
+}
+
+/* ── Gooey Search Bar ── */
+.goo-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.goo-filter {
+  filter: url(#tipsy-goo-filter);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.goo-inner {
+  position: relative;
+  height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.goo-results-anchor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.goo-result-pill {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  height: 46px;
+  border-radius: 23px;
+  background-color: #1B0F0A;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  padding: 0;
+}
+
+.goo-main-pill {
+  position: relative;
+  height: 52px;
+  border-radius: 26px;
+  background-color: #1B0F0A;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 28px;
+  z-index: 1;
+  border: none;
+  flex-shrink: 0;
+}
+
+.goo-search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.90);
+  font-size: 13px;
+  padding: 0 8px;
+  font-family: var(--font-hanken), 'Hanken Grotesk', system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.goo-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.32);
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.goo-icon-pill {
+  position: absolute;
+  left: 100%;
+  top: 3px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #1B0F0A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
 }
