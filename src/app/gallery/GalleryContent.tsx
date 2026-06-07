@@ -67,6 +67,46 @@ const CHAPTERS: { number: string; title: string; description: string; category: 
   { number: "03", title: "THE DETAILS", description: "Small things that make\nordinary days special.",                 category: "details" },
 ];
 
+// ─── Archive Layout ───────────────────────────────────────────────────────────
+// Each entry maps 1:1 to galleryImages[i].
+// colSpan + aspects are arranged so each desktop row sums to exactly 3 columns:
+//   Row 1  [2+1]   Row 2  [1+1+1]   Row 3  [1+2]   Row 4  [1+1+1]
+//   Row 5  [2+1]   Row 6  [1+1+1]   Row 7  [1+2]   Row 8  [3] full-width
+
+const ARCHIVE_LAYOUT: { colSpan: 1 | 2 | 3; aspect: string }[] = [
+  { colSpan: 2, aspect: "16/9" }, // 0  wide opener
+  { colSpan: 1, aspect: "3/4"  }, // 1  portrait
+  { colSpan: 1, aspect: "4/5"  }, // 2  portrait
+  { colSpan: 1, aspect: "4/3"  }, // 3  landscape
+  { colSpan: 1, aspect: "4/5"  }, // 4  portrait
+  { colSpan: 1, aspect: "4/3"  }, // 5  landscape
+  { colSpan: 2, aspect: "4/3"  }, // 6  wide landscape
+  { colSpan: 1, aspect: "3/4"  }, // 7  portrait
+  { colSpan: 1, aspect: "1/1"  }, // 8  square
+  { colSpan: 1, aspect: "3/4"  }, // 9  portrait
+  { colSpan: 2, aspect: "16/9" }, // 10 wide
+  { colSpan: 1, aspect: "1/1"  }, // 11 square
+  { colSpan: 1, aspect: "4/3"  }, // 12 landscape
+  { colSpan: 1, aspect: "3/4"  }, // 13 portrait
+  { colSpan: 1, aspect: "4/3"  }, // 14 landscape
+  { colSpan: 1, aspect: "3/4"  }, // 15 portrait
+  { colSpan: 2, aspect: "4/3"  }, // 16 wide
+  { colSpan: 3, aspect: "21/9" }, // 17 full-width cinematic close
+];
+
+// Alternating aspects for the 2-column mobile archive grid (18 images)
+const MOBILE_ARCHIVE_ASPECTS = [
+  "4/5","4/3", "4/3","4/5", "4/5","1/1",
+  "1/1","4/5", "4/3","4/5", "4/5","4/3",
+  "4/3","4/5", "4/5","4/3", "1/1","4/5",
+];
+
+// Alternating aspects for the 2-column mobile memory wall grid (12 images)
+const MOBILE_WALL_ASPECTS = [
+  "4/5","4/3", "4/3","4/5", "4/5","1/1",
+  "4/3","4/5", "4/5","4/3", "1/1","4/5",
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fadeUp(delay = 0, reduced = false) {
@@ -488,7 +528,7 @@ export function GalleryContent() {
         </div>
       </section>
 
-      {/* Mobile memory wall — 2-col grid, no rotation, title always visible */}
+      {/* Mobile memory wall — 2-col grid, varied aspect ratios, title always visible */}
       <section className="md:hidden grid grid-cols-2 gap-[1px]" style={{ background: "#1B0F0A" }}>
         {FLAT_WALL.map((item, i) => {
           const img = galleryImages[item.imgIdx];
@@ -498,7 +538,7 @@ export function GalleryContent() {
               type="button"
               onClick={() => openViewer(i)}
               className="relative overflow-hidden focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
-              style={{ aspectRatio: "4/3" }}
+              style={{ aspectRatio: MOBILE_WALL_ASPECTS[i] ?? "4/3" }}
               aria-label={`Open memory: ${item.title}`}
             >
               <Image
@@ -567,11 +607,10 @@ export function GalleryContent() {
           </span>
         </motion.div>
 
-        {/* Desktop: 3-col, aspect ratios from data */}
+        {/* Desktop: magazine collage — varied column spans + aspect ratios */}
         <div className="hidden md:grid grid-cols-3 gap-[2px]">
-          {galleryImages.map((img, i) => {
-            const ratio =
-              img.aspect === "portrait" ? "3/4" : img.aspect === "wide" ? "16/9" : "1/1";
+          {ARCHIVE_LAYOUT.map(({ colSpan, aspect }, i) => {
+            const img = galleryImages[i];
             return (
               <motion.button
                 key={img.src}
@@ -579,16 +618,16 @@ export function GalleryContent() {
                 onClick={() => openArchive(i)}
                 data-cursor="view"
                 className="relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
-                style={{ aspectRatio: ratio }}
+                style={{ gridColumn: `span ${colSpan}`, aspectRatio: aspect }}
                 aria-label={img.alt}
-                {...fadeIn((i % 3) * 0.06, reduced)}
+                {...fadeIn(Math.min(i * 0.04, 0.24), reduced)}
               >
                 <Image
                   src={img.src}
                   alt={img.alt}
                   fill
                   className="object-cover transition-transform duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
-                  sizes="33vw"
+                  sizes={colSpan === 3 ? "100vw" : colSpan === 2 ? "66vw" : "33vw"}
                   priority={i < 6}
                 />
                 <ImageGrain grainOpacity={0.16} vignetteOpacity={0.08} />
@@ -597,7 +636,7 @@ export function GalleryContent() {
           })}
         </div>
 
-        {/* Mobile: 2-col, uniform aspect */}
+        {/* Mobile: 2-col with varied aspect ratios — no uniform blocks */}
         <div className="md:hidden grid grid-cols-2 gap-[1px]">
           {galleryImages.map((img, i) => (
             <button
@@ -605,7 +644,7 @@ export function GalleryContent() {
               type="button"
               onClick={() => openArchive(i)}
               className="relative overflow-hidden focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
-              style={{ aspectRatio: "4/3" }}
+              style={{ aspectRatio: MOBILE_ARCHIVE_ASPECTS[i] ?? "4/3" }}
               aria-label={img.alt}
             >
               <Image
