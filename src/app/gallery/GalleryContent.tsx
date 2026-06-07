@@ -528,8 +528,8 @@ export function GalleryContent() {
         </div>
       </section>
 
-      {/* Mobile memory wall — 2-col grid, varied aspect ratios, title always visible */}
-      <section className="md:hidden grid grid-cols-2 gap-[1px]" style={{ background: "#1B0F0A" }}>
+      {/* Mobile memory wall — CSS columns masonry, varied heights, true collage */}
+      <section className="md:hidden" style={{ columns: 2, columnGap: "1px", background: "#1B0F0A" }}>
         {FLAT_WALL.map((item, i) => {
           const img = galleryImages[item.imgIdx];
           return (
@@ -537,8 +537,8 @@ export function GalleryContent() {
               key={item.imgIdx}
               type="button"
               onClick={() => openViewer(i)}
-              className="relative overflow-hidden focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
-              style={{ aspectRatio: MOBILE_WALL_ASPECTS[i] ?? "4/3" }}
+              className="relative overflow-hidden block w-full focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
+              style={{ aspectRatio: MOBILE_WALL_ASPECTS[i] ?? "4/3", breakInside: "avoid", marginBottom: "1px" }}
               aria-label={`Open memory: ${item.title}`}
             >
               <Image
@@ -607,7 +607,7 @@ export function GalleryContent() {
           </span>
         </motion.div>
 
-        {/* Desktop: magazine collage — varied column spans + aspect ratios */}
+        {/* Desktop: magazine collage — varied column spans + smooth hover */}
         <div className="hidden md:grid grid-cols-3 gap-[2px]">
           {ARCHIVE_LAYOUT.map(({ colSpan, aspect }, i) => {
             const img = galleryImages[i];
@@ -631,20 +631,21 @@ export function GalleryContent() {
                   priority={i < 6}
                 />
                 <ImageGrain grainOpacity={0.16} vignetteOpacity={0.08} />
+                <div className="absolute inset-0 z-[6] bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[700ms] ease-out" />
               </motion.button>
             );
           })}
         </div>
 
-        {/* Mobile: 2-col with varied aspect ratios — no uniform blocks */}
-        <div className="md:hidden grid grid-cols-2 gap-[1px]">
+        {/* Mobile: CSS columns masonry — images flow naturally at their own heights */}
+        <div className="md:hidden" style={{ columns: 2, columnGap: "1px" }}>
           {galleryImages.map((img, i) => (
             <button
               key={img.src}
               type="button"
               onClick={() => openArchive(i)}
-              className="relative overflow-hidden focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
-              style={{ aspectRatio: MOBILE_ARCHIVE_ASPECTS[i] ?? "4/3" }}
+              className="relative overflow-hidden block w-full focus-visible:outline-2 focus-visible:outline-[#1B0F0A]"
+              style={{ aspectRatio: MOBILE_ARCHIVE_ASPECTS[i] ?? "4/3", breakInside: "avoid", marginBottom: "1px" }}
               aria-label={img.alt}
             >
               <Image
