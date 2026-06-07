@@ -12,8 +12,9 @@ export function AmbiencePrompt() {
 
   useEffect(() => {
     if (!hasChoice) {
-      // Wait for preloader to finish, then gently surface the prompt
-      const t = setTimeout(() => setVisible(true), 3500);
+      // Preloader runs ~6–7s. Setting 1s means the prompt is ready and waiting
+      // behind the preloader, then appears the instant it slides away.
+      const t = setTimeout(() => setVisible(true), 1000);
       return () => clearTimeout(t);
     }
   }, [hasChoice]);

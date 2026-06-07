@@ -14,8 +14,8 @@ const GREETINGS = [
   "Mabuhay",
 ] as const;
 
-const CYCLE_MS = 210;
-const HOLD_MS  = 1300;
+const CYCLE_MS = 500;  // each greeting stays long enough to read
+const HOLD_MS  = 1400; // extra hold on "Mabuhay"
 const EXIT_MS  = 1400;
 
 type Phase = "greet" | "brand" | "exit" | "done";

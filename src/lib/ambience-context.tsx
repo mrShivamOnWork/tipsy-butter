@@ -9,11 +9,16 @@ import {
   ReactNode,
 } from "react";
 
-// Place your cafe ambience audio at: public/audio/cafe-ambience.mp3
-// Recommended: ~3-5 min loopable cafe atmosphere track (no music, no lyrics).
-const AUDIO_SRC = "/audio/cafe-ambience.mp3";
+const AUDIO_SRC   = "/audio/cafe-ambience.mp3";
 const STORAGE_KEY = "tipsy-ambience"; // "yes" | "no" | null (first visit)
-const TARGET_VOLUME = 0.12; // 12% — barely present, just atmosphere
+
+// Desktop/laptop gets more presence; mobile earpiece stays subtle
+function getTargetVol(): number {
+  if (typeof window === "undefined") return 0.12;
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ? 0.22  // desktop — clearer, more immersive
+    : 0.12; // mobile  — subtle background
+}
 
 type AmbienceCtx = {
   enabled: boolean;
@@ -57,15 +62,14 @@ export function AmbienceProvider({ children }: { children: ReactNode }) {
 
   function fadeIn() {
     const a = getOrCreateAudio();
+    const target = getTargetVol();
     clearFade();
-    a.play().catch(() => {
-      // Browser may block autoplay — silently fail
-    });
+    a.play().catch(() => {});
     fadeTimerRef.current = setInterval(() => {
-      if (a.volume < TARGET_VOLUME - 0.004) {
-        a.volume = Math.min(a.volume + 0.005, TARGET_VOLUME);
+      if (a.volume < target - 0.004) {
+        a.volume = Math.min(a.volume + 0.006, target);
       } else {
-        a.volume = TARGET_VOLUME;
+        a.volume = target;
         clearFade();
       }
     }, 80);
