@@ -93,11 +93,29 @@ export function AmbienceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === null) {
-      // First visit — reveal the prompt
+      // First visit — preloader will show the choice screen
       setHasChoice(false);
     } else if (saved === "yes") {
       setEnabled(true);
-      fadeIn();
+      // Returning visitor: browser may block autoplay without a user gesture.
+      // Try immediately; if blocked, start the moment they first interact with the page.
+      const a = getOrCreateAudio();
+      a.play()
+        .then(() => {
+          const target = getTargetVol();
+          clearFade();
+          fadeTimerRef.current = setInterval(() => {
+            if (a.volume < target - 0.004) {
+              a.volume = Math.min(a.volume + 0.006, target);
+            } else {
+              a.volume = target;
+              clearFade();
+            }
+          }, 80);
+        })
+        .catch(() => {
+          document.addEventListener("pointerdown", () => fadeIn(), { once: true });
+        });
     }
     return () => {
       clearFade();

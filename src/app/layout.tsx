@@ -8,7 +8,6 @@ import { PreloaderWrapper } from "@/components/layout/PreloaderWrapper";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 import { PremiumCursor } from "@/components/ui/PremiumCursor";
 import { AmbienceProvider } from "@/lib/ambience-context";
-import { AmbiencePrompt } from "@/components/ui/AmbiencePrompt";
 import { AudioToggle } from "@/components/ui/AudioToggle";
 
 const josefin = Josefin_Sans({
@@ -126,7 +125,6 @@ export default function RootLayout({
       <body className="bg-background text-on-surface font-body-md overflow-x-hidden">
         <AmbienceProvider>
           <PremiumCursor />
-          <AmbiencePrompt />
           <AudioToggle />
           <SmoothScrollProvider>
             <PreloaderWrapper>

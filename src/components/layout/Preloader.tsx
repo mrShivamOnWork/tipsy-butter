@@ -16,15 +16,22 @@ const GREETINGS = [
 
 const CYCLE_MS = 500;  // each greeting stays long enough to read
 const HOLD_MS  = 1400; // extra hold on "Mabuhay"
-const EXIT_MS  = 1400;
+const EXIT_MS  = 1300;
 
-type Phase = "greet" | "brand" | "exit" | "done";
+type Phase = "greet" | "brand" | "choice" | "exit" | "done";
 
-export function Preloader({ onDone }: { onDone: () => void }) {
-  const [idx, setIdx] = useState(0);
+type Props = {
+  onDone: () => void;
+  onChoice: (yes: boolean) => void;
+};
+
+export function Preloader({ onDone, onChoice }: Props) {
+  const [idx, setIdx]     = useState(0);
   const [phase, setPhase] = useState<Phase>("greet");
-  const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
+  const onDoneRef   = useRef(onDone);
+  const onChoiceRef = useRef(onChoice);
+  onDoneRef.current   = onDone;
+  onChoiceRef.current = onChoice;
 
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
@@ -38,7 +45,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
     }
 
     if (phase === "brand") {
-      t = setTimeout(() => setPhase("exit"), 1100);
+      t = setTimeout(() => setPhase("choice"), 950);
     }
 
     if (phase === "exit") {
@@ -53,9 +60,15 @@ export function Preloader({ onDone }: { onDone: () => void }) {
 
   if (phase === "done") return null;
 
-  const exiting = phase === "exit";
-  const isMabuhay = idx === GREETINGS.length - 1;
-  const showBrand = phase === "brand" || phase === "exit";
+  function handleChoice(yes: boolean) {
+    onChoiceRef.current(yes);
+    setPhase("exit");
+  }
+
+  const exiting    = phase === "exit";
+  const isMabuhay  = idx === GREETINGS.length - 1;
+  const showBrand  = phase === "brand";
+  const showChoice = phase === "choice" || phase === "exit";
 
   return (
     <div className="fixed inset-0 z-[10000] overflow-hidden" aria-hidden="true">
@@ -67,7 +80,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
         animate={exiting ? { y: "-100%" } : { y: 0 }}
         transition={
           exiting
-            ? { duration: 0.92, ease: [0.76, 0, 0.24, 1], delay: 0.18 }
+            ? { duration: 0.9, ease: [0.76, 0, 0.24, 1], delay: 0.18 }
             : { duration: 0 }
         }
       />
@@ -83,17 +96,16 @@ export function Preloader({ onDone }: { onDone: () => void }) {
         }
         transition={
           exiting
-            ? { duration: 0.92, ease: [0.76, 0, 0.24, 1] }
+            ? { duration: 0.9, ease: [0.76, 0, 0.24, 1] }
             : { duration: 0 }
         }
       >
-        {/* Fixed-height container — prevents layout shifts when stages swap */}
         <div className="absolute inset-0 flex items-center justify-center px-8">
-          <div className="relative w-full" style={{ height: "260px" }}>
+          <div className="relative w-full" style={{ height: "320px" }}>
 
-            {/* STAGE 1: All greeting content grouped — exits as one unit */}
+            {/* STAGE 1 — Greeting cycle */}
             <AnimatePresence>
-              {!showBrand && (
+              {phase === "greet" && (
                 <motion.div
                   key="stage-greet"
                   className="absolute inset-0 flex flex-col items-center justify-center gap-8"
@@ -103,7 +115,6 @@ export function Preloader({ onDone }: { onDone: () => void }) {
                     transition: { duration: 0.55, ease: [0.76, 0, 0.24, 1] },
                   }}
                 >
-                  {/* Cycling greeting text */}
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={idx}
@@ -118,7 +129,6 @@ export function Preloader({ onDone }: { onDone: () => void }) {
                     </motion.span>
                   </AnimatePresence>
 
-                  {/* Mabuhay accent — fades in on last greeting, exits with parent */}
                   <motion.div
                     className="flex items-center gap-4"
                     animate={{ opacity: isMabuhay ? 1 : 0 }}
@@ -144,7 +154,6 @@ export function Preloader({ onDone }: { onDone: () => void }) {
                     />
                   </motion.div>
 
-                  {/* Progress dots — exits with parent */}
                   <div className="flex gap-2" aria-hidden="true">
                     {GREETINGS.map((_, i) => (
                       <motion.span
@@ -152,7 +161,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
                         className="block rounded-full"
                         animate={{
                           opacity: i === idx ? 0.55 : 0.10,
-                          scale: i === idx ? 1.4 : 1,
+                          scale:   i === idx ? 1.4  : 1,
                         }}
                         transition={{ duration: 0.18 }}
                         style={{ width: 4, height: 4, backgroundColor: "#fff8f6" }}
@@ -163,7 +172,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
               )}
             </AnimatePresence>
 
-            {/* STAGE 2: Brand reveal — slides up from below */}
+            {/* STAGE 2 — Brand reveal */}
             <AnimatePresence>
               {showBrand && (
                 <motion.div
@@ -171,7 +180,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
                   className="absolute inset-0 flex flex-col items-center justify-center gap-4"
                   initial={{ opacity: 0, y: 48 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
+                  exit={{ opacity: 0, y: -24, transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] } }}
                   transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.28 }}
                 >
                   <div className="flex items-center gap-4">
@@ -208,6 +217,59 @@ export function Preloader({ onDone }: { onDone: () => void }) {
                   >
                     Cafe &amp; Bakehouse
                   </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* STAGE 3 — Ambience choice */}
+            <AnimatePresence>
+              {showChoice && (
+                <motion.div
+                  key="stage-choice"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-7"
+                  initial={{ opacity: 0, y: 36 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {/* Label */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-5 h-px" style={{ backgroundColor: "#a27e43" }} />
+                    <span
+                      className="font-label-caps text-[8px] uppercase tracking-[0.45em]"
+                      style={{ color: "rgba(255,248,246,0.35)" }}
+                    >
+                      One more thing
+                    </span>
+                    <div className="w-5 h-px" style={{ backgroundColor: "#a27e43" }} />
+                  </div>
+
+                  {/* Question */}
+                  <p
+                    className="font-headline-md uppercase tracking-[0.06em] text-center leading-snug"
+                    style={{ fontSize: "clamp(18px, 2.8vw, 30px)", color: "rgba(255,248,246,0.88)" }}
+                  >
+                    Step inside<br />with cafe ambience?
+                  </p>
+
+                  {/* Buttons */}
+                  <div className="flex flex-col gap-3 w-full max-w-[300px]">
+                    <button
+                      aria-hidden="false"
+                      onClick={() => handleChoice(true)}
+                      className="w-full py-4 px-6 font-label-caps text-[9px] uppercase tracking-[0.22em] text-left transition-opacity hover:opacity-85"
+                      style={{ backgroundColor: "rgba(255,248,246,0.92)", color: "#1B0F0A" }}
+                    >
+                      Enter With Ambience
+                    </button>
+                    <button
+                      aria-hidden="false"
+                      onClick={() => handleChoice(false)}
+                      className="w-full py-4 px-6 font-label-caps text-[9px] uppercase tracking-[0.22em] text-left transition-colors hover:border-white/40"
+                      style={{ border: "1px solid rgba(255,248,246,0.18)", color: "rgba(255,248,246,0.45)" }}
+                    >
+                      Continue Silent
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
