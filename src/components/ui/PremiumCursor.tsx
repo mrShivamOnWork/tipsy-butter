@@ -77,49 +77,50 @@ export function PremiumCursor() {
         pointerEvents: "none",
       }}
     >
+      {/* White circle + mix-blend-mode:difference = always visible on any background */}
       <motion.div
         animate={{
           width: expanded ? 54 : 10,
           height: expanded ? 54 : 10,
-          backgroundColor: expanded ? "#1B0F0A" : "transparent",
-          borderColor: "#1B0F0A",
         }}
         transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
         style={{
           opacity,
           borderRadius: "50%",
-          border: "1.5px solid #1B0F0A",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
+          backgroundColor: "#ffffff",
+          mixBlendMode: "difference",
         }}
-      >
-        <AnimatePresence mode="wait">
-          {expanded && label && (
-            <motion.span
-              key={label}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              transition={{ duration: 0.16 }}
-              style={{
-                fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif",
-                fontSize: "7px",
-                fontWeight: 700,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "#ffffff",
-                whiteSpace: "nowrap",
-                lineHeight: 1,
-                userSelect: "none",
-              }}
-            >
-              {label}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.div>
+      />
+      {/* Label sits outside the blend layer so it renders normally */}
+      <AnimatePresence mode="wait">
+        {expanded && label && (
+          <motion.span
+            key={label}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.16 }}
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif",
+              fontSize: "7px",
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "#1B0F0A",
+              whiteSpace: "nowrap",
+              lineHeight: 1,
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

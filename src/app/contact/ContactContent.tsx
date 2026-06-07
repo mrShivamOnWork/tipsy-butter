@@ -35,24 +35,33 @@ export function ContactContent() {
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
-    setStatus("loading");
+  e.preventDefault();
 
-    const formspreeId = process.env.mqeopjgv;
+  if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+    return;
+  }
 
-    if (!formspreeId) {
-      // Formspree not yet configured — fall back to Facebook
-      window.open(siteConfig.facebook, "_blank", "noopener,noreferrer");
-      setTimeout(() => {
-        setStatus("success");
-        setForm({ name: "", email: "", subject: "inquiry", message: "" });
-      }, 600);
-      return;
-    }
+  setStatus("loading");
 
-    try {
-      const res = await fetch(`https://formspree.io/f/mqeopjgv}`, {
+  const formspreeId = process.env.NEXT_PUBLIC_FORMSPREE_ID;
+
+  if (!formspreeId) {
+    console.warn("Formspree ID missing — opening Facebook fallback");
+
+    window.open(
+      siteConfig.facebook,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+    setStatus("idle");
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `https://formspree.io/f/${formspreeId}`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,18 +73,26 @@ export function ContactContent() {
           subject: `[The Tipsy Butter] ${form.subject}`,
           message: form.message,
         }),
-      });
-
-      if (res.ok) {
-        setStatus("success");
-        setForm({ name: "", email: "", subject: "inquiry", message: "" });
-      } else {
-        setStatus("error");
       }
-    } catch {
+    );
+
+    if (res.ok) {
+      setStatus("success");
+
+      setForm({
+        name: "",
+        email: "",
+        subject: "inquiry",
+        message: "",
+      });
+    } else {
       setStatus("error");
     }
+  } catch (error) {
+    console.error("Form submission failed:", error);
+    setStatus("error");
   }
+}
 
   return (
     <>
