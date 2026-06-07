@@ -34,16 +34,47 @@ export function ContactContent() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
     setStatus("loading");
-    // Open Facebook Messenger — the cafe's primary contact channel
-    window.open(siteConfig.facebook, "_blank", "noopener,noreferrer");
-    setTimeout(() => {
-      setStatus("success");
-      setForm({ name: "", email: "", subject: "inquiry", message: "" });
-    }, 600);
+
+    const formspreeId = process.env.mqeopjgv;
+
+    if (!formspreeId) {
+      // Formspree not yet configured — fall back to Facebook
+      window.open(siteConfig.facebook, "_blank", "noopener,noreferrer");
+      setTimeout(() => {
+        setStatus("success");
+        setForm({ name: "", email: "", subject: "inquiry", message: "" });
+      }, 600);
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://formspree.io/f/mqeopjgv}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          subject: `[The Tipsy Butter] ${form.subject}`,
+          message: form.message,
+        }),
+      });
+
+      if (res.ok) {
+        setStatus("success");
+        setForm({ name: "", email: "", subject: "inquiry", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
   }
 
   return (
@@ -190,9 +221,9 @@ export function ContactContent() {
                 className="bg-surface-container-low border border-outline-variant/20 rounded-xl p-10 text-center"
               >
                 <div className="text-3xl mb-4">☕</div>
-                <h3 className="font-headline-xl font-bold text-primary uppercase text-2xl mb-3">We&apos;ve Opened Facebook!</h3>
+                <h3 className="font-headline-xl font-bold text-primary uppercase text-2xl mb-3">Message Sent!</h3>
                 <p className="font-body-md text-on-surface-variant text-sm">
-                  We&apos;ve launched our Facebook page. Send us a message there — we reply within 24 hours.
+                  Thank you — we&apos;ll get back to you soon. Expect a reply within 24 hours.
                 </p>
                 <button
                   onClick={() => setStatus("idle")}
@@ -255,7 +286,18 @@ export function ContactContent() {
                 </div>
 
                 {status === "error" && (
-                  <p className="font-body-md text-error text-sm">Something went wrong. Please try again.</p>
+                  <p className="font-body-md text-error text-sm">
+                    Something went wrong. Please try again or{" "}
+                    <a
+                      href={siteConfig.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      message us on Facebook
+                    </a>
+                    .
+                  </p>
                 )}
 
                 <button
