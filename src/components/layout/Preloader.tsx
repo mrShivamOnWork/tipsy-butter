@@ -14,7 +14,7 @@ const GREETINGS = [
 // Total before choice screen: 4×300 + 700 + 800 = 2700ms
 const CYCLE_MS  = 300;   // snappy cycle — each greeting flashes in
 const HOLD_MS   = 700;   // Mabuhay gets the special hold
-const BRAND_MS  = 800;   // brand reveal — short but meaningful
+const BRAND_MS  = 2000;  // brand reveal — hold so people can read it
 const EXIT_MS   = 1000;  // smooth curtain exit
 
 type Phase = "greet" | "brand" | "choice" | "exit" | "done";

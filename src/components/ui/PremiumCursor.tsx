@@ -144,7 +144,7 @@ export function PremiumCursor() {
         position: "fixed",
         top: 0,
         left: 0,
-        zIndex: 9999,
+        zIndex: 10001,
         pointerEvents: "none",
       }}
     >

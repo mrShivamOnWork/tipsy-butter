@@ -55,7 +55,7 @@ export function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
-          {siteConfig.nav.slice(1).map((link) => {
+          {siteConfig.nav.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
