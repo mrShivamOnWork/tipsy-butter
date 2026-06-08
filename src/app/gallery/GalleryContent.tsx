@@ -199,7 +199,7 @@ function MemoryViewer({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={idx}
-          className="flex flex-col items-center gap-5 w-full max-w-[500px]"
+          className="absolute inset-0 flex items-center justify-center px-6 py-20 md:px-20 md:py-16"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
@@ -207,28 +207,27 @@ function MemoryViewer({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Editorial label */}
-          <span className="font-label-caps text-[7px] tracking-[0.34em] text-white/25 uppercase">
+          <span className="absolute top-12 left-1/2 -translate-x-1/2 font-label-caps text-[7px] tracking-[0.34em] text-white/25 uppercase">
             EST. 2024 — DIGOS CITY
           </span>
 
           {/* Photograph */}
           <div
-            className="relative w-full overflow-hidden"
-            style={{ aspectRatio: card.aspect }}
+            className="relative h-[min(62dvh,620px)] w-[min(88vw,760px)] overflow-hidden"
           >
             <Image
               src={img.src}
               alt={img.alt}
               fill
-              className="object-cover"
-              sizes="500px"
+              className="object-contain"
+              sizes="(max-width: 768px) 88vw, 760px"
               priority
             />
             <ImageGrain grainOpacity={0.15} vignetteOpacity={0.10} />
           </div>
 
           {/* Title + caption */}
-          <div className="text-center flex flex-col gap-2">
+          <div className="absolute bottom-8 left-1/2 z-20 flex w-[min(86vw,560px)] -translate-x-1/2 flex-col gap-2 text-center md:bottom-9">
             <h2 className="font-headline-sm text-white tracking-[0.20em] uppercase text-[15px] md:text-base">
               {card.title}
             </h2>
@@ -327,22 +326,24 @@ function ArchiveLightbox({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={index}
-          className="absolute inset-0"
+          className="absolute inset-0 flex items-center justify-center px-5 py-16 md:px-16"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.28, ease: "easeInOut" }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Image
-            src={img.src}
-            alt={img.alt}
-            fill
-            className="object-contain"
-            sizes="100vw"
-            priority
-          />
-          <ImageGrain grainOpacity={0.12} vignetteOpacity={0} />
+          <div className="relative h-[min(78dvh,760px)] w-[min(92vw,1180px)]">
+            <Image
+              src={img.src}
+              alt={img.alt}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 92vw, 1180px"
+              priority
+            />
+            <ImageGrain grainOpacity={0.12} vignetteOpacity={0} />
+          </div>
         </motion.div>
       </AnimatePresence>
 
