@@ -131,12 +131,12 @@ export function VisitContent() {
               </div>
               <div className="mt-8 grid grid-cols-2 gap-4">
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(siteConfig.address)}`}
+                  href={siteConfig.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-primary text-on-primary font-label-caps py-3.5 px-4 transition-all active:scale-95 flex items-center justify-center gap-2 rounded-full text-[10px] uppercase tracking-wider hover:opacity-80"
                 >
-                  Get Directions
+                  Open Google Maps
                 </a>
                 <Link
                   href="/contact"
@@ -163,6 +163,15 @@ export function VisitContent() {
               referrerPolicy="no-referrer-when-downgrade"
               title="The Tipsy Butter location map"
             />
+            <a
+              href={siteConfig.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute left-5 top-5 z-20 bg-surface/95 px-5 py-3 font-label-caps text-[9px] uppercase tracking-[0.16em] text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-tertiary-fixed"
+              data-cursor="go"
+            >
+              Open Google Maps
+            </a>
             {/* Map pin overlay */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none">
               <div className="bg-primary text-on-primary py-2.5 px-5 rounded-full shadow-2xl flex items-center gap-2">

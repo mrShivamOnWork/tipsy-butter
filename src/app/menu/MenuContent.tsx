@@ -19,6 +19,25 @@ const CATEGORIES = [
   ...menuCategories.map((c) => ({ id: c.id, label: c.label })),
 ];
 
+const CUSTOMER_FAVORITES = [
+  {
+    item: menuCategories[0].items[1],
+    note: "For a buttery first bite",
+  },
+  {
+    item: menuCategories[1].items[0],
+    note: "A savory bakehouse favorite",
+  },
+  {
+    item: menuCategories[2].items[1],
+    note: "Best with a slow morning",
+  },
+  {
+    item: menuCategories[3].items[0],
+    note: "For something sweet",
+  },
+];
+
 export function MenuContent() {
   const reduced = useReducedMotion();
   const [sort, setSort] = useState<SortKey>("default");
@@ -28,7 +47,7 @@ export function MenuContent() {
     return menuCategories
       .filter((cat) => activeCategory === "all" ? true : cat.id === activeCategory)
       .map((cat) => {
-        let items = [...cat.items];
+        const items = [...cat.items];
         if (sort === "price-asc")  items.sort((a, b) => parsePHP(a.price) - parsePHP(b.price));
         if (sort === "price-desc") items.sort((a, b) => parsePHP(b.price) - parsePHP(a.price));
         if (sort === "az")         items.sort((a, b) => a.name.localeCompare(b.name));
@@ -59,7 +78,57 @@ export function MenuContent() {
         </motion.div>
       </section>
 
-      {/* ── Sticky controls bar ── */}
+      {/* Customer guidance */}
+      <section className="px-6 md:px-10 pb-14 max-w-[1440px] mx-auto" aria-labelledby="customer-favorites-heading">
+        <motion.div
+          {...(reduced ? {} : {
+            initial: { opacity: 0, y: 16 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1], delay: 0.08 },
+          })}
+          className="border-y border-outline-variant/25 py-8"
+        >
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="font-label-caps text-secondary text-[9px] tracking-[0.28em] uppercase">
+                Not sure what to order?
+              </span>
+              <h2
+                id="customer-favorites-heading"
+                className="mt-3 font-headline-xl font-extrabold text-primary uppercase tracking-[-0.02em] text-2xl md:text-3xl"
+              >
+                Customer Favorites
+              </h2>
+            </div>
+            <p className="font-body-md text-on-surface-variant text-sm leading-relaxed max-w-sm md:text-right">
+              Four easy starting points for first-time visitors, chosen from the menu.
+            </p>
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden border border-outline-variant/25 bg-outline-variant/25 sm:grid-cols-2 lg:grid-cols-4">
+            {CUSTOMER_FAVORITES.map(({ item, note }, index) => (
+              <article key={item.name} className="bg-surface p-5" data-cursor="taste">
+                <div className="flex items-start justify-between gap-4">
+                  <span className="font-label-caps text-[8px] uppercase tracking-[0.24em] text-tertiary">
+                    Start {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-headline-sm text-primary text-sm whitespace-nowrap">
+                    {item.price}
+                  </span>
+                </div>
+                <h3 className="mt-4 font-headline-sm font-bold text-primary uppercase tracking-[-0.01em] text-[15px] leading-snug">
+                  {item.name}
+                </h3>
+                <p className="mt-2 font-body-md text-on-surface-variant text-[12px] leading-relaxed">
+                  {note}
+                </p>
+              </article>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Sticky controls bar */}
       <div className="sticky top-[64px] z-40 bg-background/95 backdrop-blur-md border-b border-outline-variant/20">
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 py-4">
 

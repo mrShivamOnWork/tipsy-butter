@@ -50,9 +50,10 @@ export function Hero() {
         {/* Eyebrow */}
         <motion.div
           {...fadeIn(0.1)}
-          className="font-label-caps text-white/80 text-[10px] tracking-[0.4em] uppercase mb-4"
+          className="font-label-caps text-white/80 text-[10px] tracking-[0.34em] uppercase mb-4"
         >
-          EST. 2024 • DIGOS CITY
+          <span className="block">Specialty Cafe &amp; Bakehouse</span>
+          <span className="mt-1 block text-white/55 tracking-[0.26em]">Digos City, Philippines</span>
         </motion.div>
 
         {/* Display headline */}
@@ -70,7 +71,7 @@ export function Hero() {
           {...fadeIn(0.4)}
           className="font-label-caps uppercase tracking-[0.22em] text-white/80 text-[11px] mb-6"
         >
-          Coffee • Croissants • Cakes
+          Fresh Bakes &bull; Coffee &bull; Slow Mornings
         </motion.p>
 
         {/* CTAs */}

@@ -4,63 +4,126 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { useReducedMotion, useIsDesktop } from "@/lib/hooks";
 
+const DARK_CLASS_HINTS = [
+  "bg-primary",
+  "bg-primary-container",
+  "menu-board-texture",
+  "text-white",
+];
+
+function labelFor(element: Element | null) {
+  const hit = element?.closest("a, button, [role='button'], [data-cursor]");
+  if (!hit) return "";
+
+  const explicit = hit.getAttribute("data-cursor");
+  if (explicit) return explicit.toUpperCase();
+
+  if (hit.matches("a, button, [role='button']")) return "GO";
+  return "";
+}
+
+function isDarkContext(element: Element | null) {
+  let node: Element | null = element;
+
+  while (node && node !== document.documentElement) {
+    const className = typeof node.className === "string" ? node.className : "";
+    if (DARK_CLASS_HINTS.some((hint) => className.includes(hint))) return true;
+
+    const style = window.getComputedStyle(node);
+    const bg = style.backgroundColor;
+    const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (match) {
+      const alpha = match[4] === undefined ? 1 : Number(match[4]);
+      if (alpha > 0.25) {
+        const r = Number(match[1]);
+        const g = Number(match[2]);
+        const b = Number(match[3]);
+        const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        return luminance < 0.42;
+      }
+    }
+
+    node = node.parentElement;
+  }
+
+  return false;
+}
+
 export function PremiumCursor() {
   const isDesktop = useIsDesktop();
   const reduced = useReducedMotion();
-
   const [label, setLabel] = useState("");
   const [expanded, setExpanded] = useState(false);
-  // useRef avoids a re-render on first mouse move (visible only ever goes false→true once)
+  const [darkContext, setDarkContext] = useState(false);
   const hasAppeared = useRef(false);
+  const lastTheme = useRef(false);
+  const lastLabel = useRef("");
+
+  const rawX = useMotionValue(-100);
+  const rawY = useMotionValue(-100);
   const opacity = useMotionValue(0);
 
-  // Raw position updated immediately
-  const rawX = useMotionValue(-200);
-  const rawY = useMotionValue(-200);
-
-  // Spring-lagged position — slight easing behind the real cursor
-  const x = useSpring(rawX, { stiffness: 480, damping: 38, mass: 0.4 });
-  const y = useSpring(rawY, { stiffness: 480, damping: 38, mass: 0.4 });
+  const x = useSpring(rawX, { stiffness: 620, damping: 44, mass: 0.28 });
+  const y = useSpring(rawY, { stiffness: 620, damping: 44, mass: 0.28 });
 
   useEffect(() => {
     if (!isDesktop || reduced) return;
 
-    // Hide native cursor on desktop
     document.documentElement.classList.add("custom-cursor");
 
-    const onMove = (e: MouseEvent) => {
-      rawX.set(e.clientX);
-      rawY.set(e.clientY);
+    const syncCursor = (clientX: number, clientY: number, target: Element | null) => {
+      rawX.set(clientX);
+      rawY.set(clientY);
+
       if (!hasAppeared.current) {
         hasAppeared.current = true;
         opacity.set(1);
       }
-    };
 
-    const onOver = (e: MouseEvent) => {
-      const el = e.target as Element;
-      const hit = el.closest("a, button, [role='button'], [data-cursor]");
-      if (hit) {
-        const attr = hit.getAttribute("data-cursor");
-        setLabel(attr ? attr.toUpperCase() : "GO");
-        setExpanded(true);
-      } else {
-        setExpanded(false);
-        setLabel("");
+      const nextLabel = labelFor(target);
+      if (nextLabel !== lastLabel.current) {
+        lastLabel.current = nextLabel;
+        setLabel(nextLabel);
+        setExpanded(Boolean(nextLabel));
+      }
+
+      const nextTheme = isDarkContext(target);
+      if (nextTheme !== lastTheme.current) {
+        lastTheme.current = nextTheme;
+        setDarkContext(nextTheme);
       }
     };
 
+    const onMove = (e: MouseEvent) => {
+      syncCursor(e.clientX, e.clientY, e.target as Element | null);
+    };
+
+    const onLeave = () => {
+      opacity.set(0);
+      hasAppeared.current = false;
+    };
+
+    const onEnter = (e: MouseEvent) => {
+      syncCursor(e.clientX, e.clientY, e.target as Element | null);
+    };
+
     document.addEventListener("mousemove", onMove, { passive: true });
-    document.addEventListener("mouseover", onOver, { passive: true });
+    document.addEventListener("mouseenter", onEnter, { passive: true });
+    document.addEventListener("mouseleave", onLeave, { passive: true });
 
     return () => {
       document.documentElement.classList.remove("custom-cursor");
       document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseover", onOver);
+      document.removeEventListener("mouseenter", onEnter);
+      document.removeEventListener("mouseleave", onLeave);
     };
   }, [isDesktop, reduced, rawX, rawY, opacity]);
 
   if (!isDesktop || reduced) return null;
+
+  const dotColor = darkContext ? "#FAF3E6" : "#1B0F0A";
+  const ringColor = darkContext ? "rgba(250,243,230,0.82)" : "rgba(27,15,10,0.72)";
+  const labelColor = darkContext ? "#1B0F0A" : "#FAF3E6";
 
   return (
     <motion.div
@@ -77,40 +140,62 @@ export function PremiumCursor() {
         pointerEvents: "none",
       }}
     >
-      {/* White circle + mix-blend-mode:difference = always visible on any background */}
       <motion.div
         animate={{
-          width: expanded ? 54 : 10,
-          height: expanded ? 54 : 10,
+          width: expanded ? 46 : 24,
+          height: expanded ? 46 : 24,
+          borderColor: ringColor,
         }}
-        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         style={{
           opacity,
           borderRadius: "50%",
-          backgroundColor: "#ffffff",
+          border: "1px solid",
           mixBlendMode: "difference",
+          boxShadow: darkContext
+            ? "0 0 0 1px rgba(27,15,10,0.10)"
+            : "0 0 0 1px rgba(250,243,230,0.18)",
         }}
       />
-      {/* Label sits outside the blend layer so it renders normally */}
+
+      <motion.div
+        animate={{
+          width: expanded ? 28 : 7,
+          height: expanded ? 28 : 7,
+          backgroundColor: dotColor,
+        }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          opacity,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          translateX: "-50%",
+          translateY: "-50%",
+          borderRadius: "50%",
+          boxShadow: "0 1px 10px rgba(0,0,0,0.16)",
+        }}
+      />
+
       <AnimatePresence mode="wait">
         {expanded && label && (
           <motion.span
             key={label}
-            initial={{ opacity: 0, scale: 0.7 }}
+            initial={{ opacity: 0, scale: 0.82 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.7 }}
-            transition={{ duration: 0.16 }}
+            exit={{ opacity: 0, scale: 0.82 }}
+            transition={{ duration: 0.14 }}
             style={{
               position: "absolute",
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
               fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif",
-              fontSize: "7px",
-              fontWeight: 700,
-              letterSpacing: "0.18em",
+              fontSize: "6.5px",
+              fontWeight: 800,
+              letterSpacing: "0.16em",
               textTransform: "uppercase",
-              color: "#1B0F0A",
+              color: labelColor,
               whiteSpace: "nowrap",
               lineHeight: 1,
               userSelect: "none",

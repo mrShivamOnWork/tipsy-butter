@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { galleryImages } from "@/data/gallery";
 import { useReducedMotion } from "@/lib/hooks";
@@ -660,6 +661,36 @@ export function GalleryContent() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="bg-primary-container px-6 py-20 text-center md:px-16 md:py-24">
+        <motion.div {...fadeUp(0, reduced)} className="mx-auto max-w-3xl">
+          <span className="font-label-caps text-[9px] uppercase tracking-[0.34em] text-primary-fixed-dim/45">
+            Your table is waiting
+          </span>
+          <h2
+            className="mt-5 font-headline-xl font-extrabold uppercase leading-tight tracking-[-0.02em] text-primary-fixed-dim"
+            style={{ fontSize: "clamp(30px, 5vw, 58px)" }}
+          >
+            Create your own slow morning.
+          </h2>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              href="/visit"
+              className="inline-flex min-w-[160px] items-center justify-center bg-primary-fixed-dim px-7 py-3.5 font-label-caps text-[10px] uppercase tracking-[0.14em] text-primary transition-colors hover:bg-tertiary-fixed"
+              data-cursor="go"
+            >
+              Visit Cafe
+            </Link>
+            <Link
+              href="/menu"
+              className="inline-flex min-w-[160px] items-center justify-center border border-primary-fixed-dim/25 px-7 py-3.5 font-label-caps text-[10px] uppercase tracking-[0.14em] text-primary-fixed-dim transition-colors hover:border-primary-fixed-dim/55"
+              data-cursor="go"
+            >
+              View Menu
+            </Link>
+          </div>
+        </motion.div>
       </section>
 
       {/* ── Memory Viewer (wall images) ── */}

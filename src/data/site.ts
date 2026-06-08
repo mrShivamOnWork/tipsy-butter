@@ -6,6 +6,8 @@ export const siteConfig = {
   phone: "0932 733 7466",
   phoneHref: "tel:+639327337466",
   facebook: "https://www.facebook.com/Thetipsybutter/",
+  googleMapsUrl:
+    "https://maps.google.com/?q=The%20Tipsy%20Butter%2C%20Do%C3%B1a%20Aurora%203rd%20Street%2C%20San%20Jose%2C%20Digos%20City%2C%20Davao%20del%20Sur%2C%20Philippines%208002",
   googleMapsEmbed:
     "https://maps.google.com/maps?q=The+Tipsy+Butter,+Do%C3%B1a+Aurora+3rd+Street,+San+Jose,+Digos+City,+Davao+del+Sur,+Philippines+8002&z=17&output=embed",
   hours: {

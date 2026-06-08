@@ -30,7 +30,7 @@ export function AudioToggle() {
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-6 left-6 z-[100] flex items-center gap-2.5 bg-surface/92 backdrop-blur-sm border border-outline/20 px-3.5 py-2.5 shadow-sm hover:border-outline/50 hover:shadow-md transition-all group"
+        className="fixed bottom-24 left-6 z-[100] flex items-center gap-2.5 bg-surface/92 backdrop-blur-sm border border-outline/20 px-3.5 py-2.5 shadow-sm hover:border-outline/50 hover:shadow-md transition-all group md:bottom-6"
       >
         {/* Animated sound-wave bars */}
         <div className="flex items-end gap-[2.5px] h-[10px]" aria-hidden="true">

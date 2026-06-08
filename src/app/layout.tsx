@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageTransitionProvider } from "@/components/layout/PageTransitionProvider";
 import { PreloaderWrapper } from "@/components/layout/PreloaderWrapper";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
+import { MobileQuickActionBar } from "@/components/layout/MobileQuickActionBar";
 import { PremiumCursor } from "@/components/ui/PremiumCursor";
 import { AmbienceProvider } from "@/lib/ambience-context";
 import { AudioToggle } from "@/components/ui/AudioToggle";
@@ -137,6 +138,7 @@ export default function RootLayout({
                 <Navbar />
                 <main>{children}</main>
                 <Footer />
+                <MobileQuickActionBar />
               </PageTransitionProvider>
             </PreloaderWrapper>
           </SmoothScrollProvider>
