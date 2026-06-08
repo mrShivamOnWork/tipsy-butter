@@ -16,8 +16,8 @@ const STORAGE_KEY = "tipsy-ambience"; // "yes" | "no" | null (first visit)
 function getTargetVol(): number {
   if (typeof window === "undefined") return 0.08;
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches
-    ? 0.10  // desktop — barely audible background
-    : 0.08; // mobile  — whisper quiet
+    ? 0.20  // desktop — barely audible background
+    : 0.15; // mobile  — whisper quiet
 }
 
 type AmbienceCtx = {
