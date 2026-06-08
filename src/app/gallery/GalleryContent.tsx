@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { galleryImages } from "@/data/gallery";
 import { useReducedMotion } from "@/lib/hooks";
@@ -165,12 +166,13 @@ function MemoryViewer({
     };
   }, [onClose, onPrev, onNext]);
 
-  return (
+  return createPortal(
+    (
     <motion.div
       role="dialog"
       aria-modal="true"
       aria-label={card.title}
-      className="fixed inset-0 z-[400] flex items-center justify-center p-6 md:p-12"
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-6 md:p-12"
       style={{ background: "rgba(14,8,5,0.96)" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -260,6 +262,8 @@ function MemoryViewer({
         </button>
       )}
     </motion.div>
+    ),
+    document.body
   );
 }
 
@@ -297,12 +301,13 @@ function ArchiveLightbox({
     };
   }, [onClose, onPrev, onNext]);
 
-  return (
+  return createPortal(
+    (
     <motion.div
       role="dialog"
       aria-modal="true"
       aria-label={`${img.alt} — ${index + 1} of ${total}`}
-      className="fixed inset-0 z-[400] bg-[#0e0805]"
+      className="fixed inset-0 z-[10000] bg-[#0e0805]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -366,6 +371,8 @@ function ArchiveLightbox({
         </button>
       )}
     </motion.div>
+    ),
+    document.body
   );
 }
 
