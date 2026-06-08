@@ -12,12 +12,12 @@ import {
 const AUDIO_SRC   = "/audio/cafe-ambience.mp3";
 const STORAGE_KEY = "tipsy-ambience"; // "yes" | "no" | null (first visit)
 
-// Desktop/laptop gets more presence; mobile earpiece stays subtle
+// Subtle cafe background — not ASMR
 function getTargetVol(): number {
-  if (typeof window === "undefined") return 0.12;
+  if (typeof window === "undefined") return 0.08;
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches
-    ? 0.22  // desktop — clearer, more immersive
-    : 0.12; // mobile  — subtle background
+    ? 0.10  // desktop — barely audible background
+    : 0.08; // mobile  — whisper quiet
 }
 
 type AmbienceCtx = {
@@ -54,7 +54,12 @@ export function AmbienceProvider({ children }: { children: ReactNode }) {
       const a = new Audio(AUDIO_SRC);
       a.loop = true;
       a.volume = 0;
-      a.preload = "none"; // lazy — only loads when user chooses ambience
+      a.preload = "none";
+      // If file is missing or unplayable, silently reset to disabled state
+      a.addEventListener("error", () => {
+        clearFade();
+        setEnabled(false);
+      }, { once: true });
       audioRef.current = a;
     }
     return audioRef.current;
@@ -64,7 +69,10 @@ export function AmbienceProvider({ children }: { children: ReactNode }) {
     const a = getOrCreateAudio();
     const target = getTargetVol();
     clearFade();
-    a.play().catch(() => {});
+    a.play().catch(() => {
+      // Play blocked (missing file, browser policy, etc.) — reset to silent
+      setEnabled(false);
+    });
     fadeTimerRef.current = setInterval(() => {
       if (a.volume < target - 0.004) {
         a.volume = Math.min(a.volume + 0.006, target);
@@ -114,6 +122,7 @@ export function AmbienceProvider({ children }: { children: ReactNode }) {
           }, 80);
         })
         .catch(() => {
+          // Browser blocked autoplay — wait for first touch/click to retry
           document.addEventListener("pointerdown", () => fadeIn(), { once: true });
         });
     }

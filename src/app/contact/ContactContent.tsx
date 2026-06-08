@@ -35,64 +35,39 @@ export function ContactContent() {
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-    return;
-  }
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      return;
+    }
 
-  setStatus("loading");
+    setStatus("loading");
 
- const formspreeId = "mqeopjgv";
+    const formspreeId = "mqeopjgv";
 
-  if (!formspreeId) {
-    console.warn("Formspree ID missing — opening Facebook fallback");
-
-    window.open(
-      siteConfig.facebook,
-      "_blank",
-      "noopener,noreferrer"
-    );
-
-    setStatus("idle");
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `https://formspree.io/f/${formspreeId}`,
-      {
+    try {
+      const res = await fetch(`https://formspree.io/f/${formspreeId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           name: form.name,
           email: form.email,
           subject: `[The Tipsy Butter] ${form.subject}`,
           message: form.message,
         }),
-      }
-    );
-
-    if (res.ok) {
-      setStatus("success");
-
-      setForm({
-        name: "",
-        email: "",
-        subject: "inquiry",
-        message: "",
       });
-    } else {
+
+      if (res.ok) {
+        setStatus("success");
+        setForm({ name: "", email: "", subject: "inquiry", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch (error) {
+      console.error("Form submission failed:", error);
       setStatus("error");
     }
-  } catch (error) {
-    console.error("Form submission failed:", error);
-    setStatus("error");
   }
-}
 
   return (
     <>

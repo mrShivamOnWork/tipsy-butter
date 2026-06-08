@@ -65,15 +65,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_PH",
+    url: "https://tipsybutter.vercel.app",
     siteName: "The Tipsy Butter",
     title: "The Tipsy Butter | Cafe & Bakehouse in Digos City",
     description:
       "Fresh bakes. Warm coffee. Better days. Your daily ritual in Digos City.",
+    images: [
+      {
+        url: "https://tipsybutter.vercel.app/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "The Tipsy Butter — Cafe & Bakehouse in Digos City",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "The Tipsy Butter | Cafe & Bakehouse in Digos City",
     description: "Fresh bakes. Warm coffee. Better days. Your daily ritual in Digos City.",
+    images: ["https://tipsybutter.vercel.app/opengraph-image"],
   },
   robots: {
     index: true,
@@ -87,16 +97,17 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "CafeOrCoffeeShop",
+  "@type": ["CafeOrCoffeeShop", "Bakery"],
   name: "The Tipsy Butter",
   description:
-    "Cafe and bakehouse in Digos City serving coffee, croissants, pastries, fresh bakes, and desserts.",
-  url: "https://www.facebook.com/Thetipsybutter/",
+    "Cozy cafe and bakehouse in Digos City, Philippines. Specialty coffee, fresh croissants, pastries, and homemade desserts.",
+  url: "https://tipsybutter.vercel.app",
   telephone: "+639327337466",
+  image: "https://tipsybutter.vercel.app/opengraph-image",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Doña Aurora 3rd Street, San Jose",
-    addressLocality: "Digos",
+    addressLocality: "Digos City",
     addressRegion: "Davao del Sur",
     postalCode: "8002",
     addressCountry: "PH",
@@ -104,13 +115,26 @@ const jsonLd = {
   openingHoursSpecification: [
     {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      dayOfWeek: ["Tuesday", "Wednesday", "Thursday"],
       opens: "08:00",
       closes: "19:00",
     },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Friday", "Saturday"],
+      opens: "08:00",
+      closes: "20:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Sunday"],
+      opens: "09:00",
+      closes: "18:00",
+    },
   ],
-  servesCuisine: ["Coffee", "Pastries", "Bakehouse"],
+  servesCuisine: ["Coffee", "Pastries", "Bakery"],
   priceRange: "₱₱",
+  sameAs: ["https://www.facebook.com/Thetipsybutter/"],
 };
 
 export default function RootLayout({

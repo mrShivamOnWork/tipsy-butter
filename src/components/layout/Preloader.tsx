@@ -8,16 +8,14 @@ const GREETINGS = [
   "Bonjour",
   "Ciao",
   "Hola",
-  "やあ",
-  "Hallå",
-  "Guten Tag",
   "Mabuhay",
 ] as const;
 
-const CYCLE_MS  = 500;   // each greeting visible long enough to read
-const HOLD_MS   = 1400;  // extra hold on "Mabuhay"
-const BRAND_MS  = 1600;  // brand fully appears ~930ms in, so hold ~670ms at full opacity
-const EXIT_MS   = 1300;
+// Total before choice screen: 4×300 + 700 + 800 = 2700ms
+const CYCLE_MS  = 300;   // snappy cycle — each greeting flashes in
+const HOLD_MS   = 700;   // Mabuhay gets the special hold
+const BRAND_MS  = 800;   // brand reveal — short but meaningful
+const EXIT_MS   = 1000;  // smooth curtain exit
 
 type Phase = "greet" | "brand" | "choice" | "exit" | "done";
 
