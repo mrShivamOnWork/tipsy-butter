@@ -9,8 +9,8 @@ const TILE = 100;
 
 // 8 discrete position jumps in 0.5s = ~16 grain changes per second.
 // steps() timing = no tweening, each jump is instant — exactly like film advancing.
-const STEPS = 8;
-const DURATION = "0.5s";
+const STEPS = 5;
+const DURATION = "0.85s";
 
 type Props = {
   grainOpacity?: number;

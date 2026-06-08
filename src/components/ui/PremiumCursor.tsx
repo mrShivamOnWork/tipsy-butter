@@ -71,15 +71,7 @@ export function PremiumCursor() {
 
     document.documentElement.classList.add("custom-cursor");
 
-    const syncCursor = (clientX: number, clientY: number, target: Element | null) => {
-      rawX.set(clientX);
-      rawY.set(clientY);
-
-      if (!hasAppeared.current) {
-        hasAppeared.current = true;
-        opacity.set(1);
-      }
-
+    const updateTarget = (target: Element | null) => {
       const nextLabel = labelFor(target);
       if (nextLabel !== lastLabel.current) {
         lastLabel.current = nextLabel;
@@ -95,7 +87,17 @@ export function PremiumCursor() {
     };
 
     const onMove = (e: MouseEvent) => {
-      syncCursor(e.clientX, e.clientY, e.target as Element | null);
+      rawX.set(e.clientX);
+      rawY.set(e.clientY);
+
+      if (!hasAppeared.current) {
+        hasAppeared.current = true;
+        opacity.set(1);
+      }
+    };
+
+    const onOver = (e: MouseEvent) => {
+      updateTarget(e.target as Element | null);
     };
 
     const onLeave = () => {
@@ -104,16 +106,22 @@ export function PremiumCursor() {
     };
 
     const onEnter = (e: MouseEvent) => {
-      syncCursor(e.clientX, e.clientY, e.target as Element | null);
+      rawX.set(e.clientX);
+      rawY.set(e.clientY);
+      opacity.set(1);
+      hasAppeared.current = true;
+      updateTarget(e.target as Element | null);
     };
 
     document.addEventListener("mousemove", onMove, { passive: true });
+    document.addEventListener("mouseover", onOver, { passive: true });
     document.addEventListener("mouseenter", onEnter, { passive: true });
     document.addEventListener("mouseleave", onLeave, { passive: true });
 
     return () => {
       document.documentElement.classList.remove("custom-cursor");
       document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseover", onOver);
       document.removeEventListener("mouseenter", onEnter);
       document.removeEventListener("mouseleave", onLeave);
     };

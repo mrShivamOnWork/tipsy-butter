@@ -192,7 +192,7 @@ function MemoryViewer({
       <button
         onClick={(e) => { e.stopPropagation(); onClose(); }}
         aria-label="Close viewer"
-        className="absolute right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#0e0805]/72 font-label-caps text-[18px] leading-none text-white/78 backdrop-blur-sm transition-colors duration-200 hover:border-white/35 hover:text-white md:right-7 md:top-6 md:h-auto md:w-auto md:rounded-none md:border-0 md:bg-transparent md:text-[8px] md:tracking-[0.22em] md:text-white/30 md:backdrop-blur-0 md:hover:text-white/70"
+        className="absolute right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#0e0805]/72 font-label-caps text-[0px] leading-none text-white/78 backdrop-blur-sm transition-colors duration-200 before:content-['X'] before:text-[16px] before:leading-none hover:border-white/35 hover:text-white md:right-7 md:top-6"
       >
         <span className="md:hidden" aria-hidden="true">×</span>
         <span className="hidden md:inline">ESC</span>
@@ -324,7 +324,7 @@ function ArchiveLightbox({
       <button
         onClick={(e) => { e.stopPropagation(); onClose(); }}
         aria-label="Close"
-        className="absolute right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#0e0805]/72 font-label-caps text-[18px] leading-none text-white/78 backdrop-blur-sm transition-colors duration-200 hover:border-white/35 hover:text-white md:right-7 md:top-6 md:h-auto md:w-auto md:rounded-none md:border-0 md:bg-transparent md:text-[8px] md:tracking-[0.22em] md:text-white/30 md:backdrop-blur-0 md:hover:text-white/70"
+        className="absolute right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#0e0805]/72 font-label-caps text-[0px] leading-none text-white/78 backdrop-blur-sm transition-colors duration-200 before:content-['X'] before:text-[16px] before:leading-none hover:border-white/35 hover:text-white md:right-7 md:top-6"
       >
         <span className="md:hidden" aria-hidden="true">×</span>
         <span className="hidden md:inline">ESC</span>
